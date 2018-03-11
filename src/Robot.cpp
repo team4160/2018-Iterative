@@ -7,17 +7,14 @@
 
 #include "Robot.h"
 
-void Robot::MotorBuilder(WPI_TalonSRX *srx, bool brake, bool inverted,
-		double RampTime = 0, int CurrentLimit = 0, int MaxCurrent = 0,
-		int MaxTime = 0) {
+void Robot::MotorBuilder(WPI_TalonSRX *srx, bool brake = true, bool inverted = false, double RampTime = 0, int CurrentLimit = 20,
+		int MaxCurrent = 20, int MaxTime = 100) {
 	srx->SetInverted(inverted);
-	if (RampTime != 0) {
-		srx->ConfigOpenloopRamp(RampTime, 0);
-	}
+	srx->ConfigOpenloopRamp(RampTime, kTimeoutMs);
+	srx->ConfigContinuousCurrentLimit(CurrentLimit, kTimeoutMs);
+	srx->ConfigPeakCurrentLimit(MaxCurrent, kTimeoutMs);
+	srx->ConfigPeakCurrentDuration(MaxTime, kTimeoutMs);
 	if (CurrentLimit != 0) {
-		srx->ConfigContinuousCurrentLimit(CurrentLimit, 0);
-		srx->ConfigPeakCurrentLimit(MaxCurrent, 0);
-		srx->ConfigPeakCurrentDuration(MaxTime, 0);
 		srx->EnableCurrentLimit(true);
 	}
 }
@@ -42,47 +39,42 @@ void Robot::RobotInit() {
 	Elevator2 = new WPI_TalonSRX(9);
 	Elevator3 = new WPI_TalonSRX(10);
 
+	clawSenor = new CANifier(21);
+
 	//follow
 	DBLeft2->Set(ControlMode::Follower, DBLeft->GetDeviceID());
 	DBRight2->Set(ControlMode::Follower, DBRight->GetDeviceID());
 	Elevator2->Set(ControlMode::Follower, Elevator1->GetDeviceID());
 	Elevator3->Set(ControlMode::Follower, Elevator1->GetDeviceID());
 
-	//Setting up the TalonSRXs
-	constexpr double driveRampTime = 0.25;
-	constexpr int driveCurrentLimit = 30;
-	constexpr int driveMaxCurrent = 38;
-	constexpr int driveMaxTime = 100;
-	constexpr double clawRampTime = 0.25;
-	constexpr int clawCurrentLimit = 20;
-	constexpr int clawMaxCurrent = 25;
-	constexpr int clawMaxTime = 100;
-	constexpr double elevatorRampTime = 0.25;
-	constexpr int elevatorCurrentLimit = 30;
-	constexpr int elevatorMaxCurrent = 35;
-	constexpr int elevatorMaxTime = 100;
-
 	//Motor Builder(&Motor,brake,invert,Ramp,limit,maxlimit,maxtime)
-	MotorBuilder(DBLeft, true, true, driveRampTime, driveCurrentLimit,
-			driveMaxCurrent, driveMaxTime);
-	MotorBuilder(DBLeft2, true, true, driveRampTime, driveCurrentLimit,
-			driveMaxCurrent, driveMaxTime);
-	MotorBuilder(DBRight, true, false, driveRampTime, driveCurrentLimit,
-			driveMaxCurrent, driveMaxTime);
-	MotorBuilder(DBRight2, true, false, driveRampTime, driveCurrentLimit,
-			driveMaxCurrent, driveMaxTime);
-	MotorBuilder(Claw, true, false, clawRampTime, clawCurrentLimit,
-			clawMaxCurrent, clawMaxTime);
-	MotorBuilder(ClawLeft, true, false, clawRampTime, clawCurrentLimit,
-			clawMaxCurrent, clawMaxTime);
-	MotorBuilder(ClawRight, true, true, clawRampTime, clawCurrentLimit,
-			clawMaxCurrent, clawMaxTime);
-	MotorBuilder(Elevator1, true, false, elevatorRampTime, elevatorCurrentLimit,
-			elevatorMaxCurrent, elevatorMaxTime);
-	MotorBuilder(Elevator2, true, false, elevatorRampTime, elevatorCurrentLimit,
-			elevatorMaxCurrent, elevatorMaxTime);
-	MotorBuilder(Elevator3, true, false, elevatorRampTime, elevatorCurrentLimit,
-			elevatorMaxCurrent, elevatorMaxTime);
+	MotorBuilder(DBLeft, /*brake*/true,/*invert*/true, driveRampTime, driveCurrentLimit, driveMaxCurrent, driveMaxTime);
+	MotorBuilder(DBLeft2, /*brake*/true,/*invert*/true, driveRampTime, driveCurrentLimit, driveMaxCurrent, driveMaxTime);
+	MotorBuilder(DBRight, /*brake*/true,/*invert*/false, driveRampTime, driveCurrentLimit, driveMaxCurrent, driveMaxTime);
+	MotorBuilder(DBRight2, /*brake*/true,/*invert*/false, driveRampTime, driveCurrentLimit, driveMaxCurrent, driveMaxTime);
+	MotorBuilder(Claw, /*brake*/true,/*invert*/false, clawRampTime, clawCurrentLimit, clawMaxCurrent, clawMaxTime);
+	MotorBuilder(ClawLeft, /*brake*/true,/*invert*/false, clawRampTime, clawCurrentLimit, clawMaxCurrent, clawMaxTime);
+	MotorBuilder(ClawRight, /*brake*/true,/*invert*/true, clawRampTime, clawCurrentLimit, clawMaxCurrent, clawMaxTime);
+	MotorBuilder(Elevator1, /*brake*/true,/*invert*/false, elevatorRampTime, elevatorCurrentLimit, elevatorMaxCurrent, elevatorMaxTime);
+	MotorBuilder(Elevator2, /*brake*/true,/*invert*/false, elevatorRampTime, elevatorCurrentLimit, elevatorMaxCurrent, elevatorMaxTime);
+	MotorBuilder(Elevator3, /*brake*/true,/*invert*/false, elevatorRampTime, elevatorCurrentLimit, elevatorMaxCurrent, elevatorMaxTime);
+
+	/* Configure velocity measurements to what we want */
+	clawSenor->ConfigVelocityMeasurementPeriod(CANifierVelocityMeasPeriod::Period_100Ms, kTimeoutMs);
+	clawSenor->ConfigVelocityMeasurementWindow(64, kTimeoutMs);
+	clawSenor->SetStatusFramePeriod(CANifierStatusFrame::CANifierStatusFrame_Status_2_General, 10, kTimeoutMs); /* speed up quadrature DIO */
+
+	Claw->ConfigRemoteFeedbackFilter(clawSenor->GetDeviceNumber(), RemoteSensorSource::RemoteSensorSource_CANifier_Quadrature,/*REMOTE*/0,
+			kTimeoutMs);
+	Claw->ConfigRemoteFeedbackFilter(0x00, RemoteSensorSource::RemoteSensorSource_Off,/*REMOTE*/1, kTimeoutMs);
+	Claw->ConfigSelectedFeedbackSensor(FeedbackDevice::RemoteSensor0,/*PID_PRIMARY*/0, kTimeoutMs);
+	Claw->ConfigForwardSoftLimitEnable(true, kTimeoutMs);
+	Claw->ConfigForwardSoftLimitThreshold(clawForwardLimit, kTimeoutMs);
+	Claw->ConfigReverseSoftLimitEnable(true, kTimeoutMs);
+	Claw->ConfigReverseSoftLimitThreshold(clawReverseLimit, kTimeoutMs);
+	Claw->SetSensorPhase(true); //Sensor Invert? TODO
+
+	//TODO add elevator encoder
 }
 
 /**
@@ -97,6 +89,9 @@ void Robot::RobotInit() {
  * make sure to add them to the chooser code above as well.
  */
 void Robot::AutonomousInit() {
+	armCount = 0;
+	elevatorCount = 0;
+
 	m_autoSelected = m_chooser.GetSelected();
 	// m_autoSelected = SmartDashboard::GetString(
 	// 		"Auto Selector", kAutoNameDefault);
@@ -124,6 +119,8 @@ void Robot::AutonomousPeriodic() {
 }
 
 void Robot::TeleopInit() {
+	armCount = 0;
+	elevatorCount = 0;
 }
 
 void Robot::TeleopPeriodic() {
@@ -131,13 +128,7 @@ void Robot::TeleopPeriodic() {
 	double right = Joystick1->GetRawAxis(5) * -1;
 	DBLeft->Set(left);
 	DBRight->Set(right);
-	/*Elevator1->Set(Joystick2->GetRawAxis(1) * -1);
-	if (Joystick2->GetRawButton(3))
-		Claw->Set(.25);
-	else if (Joystick2->GetRawButton(2))
-		Claw->Set(-.25);
-	else
-		Claw->Set(.07);*/
+	//elevator buttons set level
 	Claw->Set(Joystick2->GetRawAxis(1) * -1);
 	if (Joystick2->GetRawButton(6)) {
 		ClawLeft->Set(1);
