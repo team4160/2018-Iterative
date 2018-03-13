@@ -16,7 +16,7 @@ public:
 	constexpr int kTimeoutMs = 10;
 	constexpr int kEncoderUnit = 4096;
 
-	//Setting up the TalonSRXs
+	//Setting up the TalonSRX's config
 	constexpr double driveRampTime = 0.25;
 	constexpr int driveCurrentLimit = 30;
 	constexpr int driveMaxCurrent = 38;
@@ -33,12 +33,13 @@ public:
 	constexpr int elevatorMaxTime = 100;
 
 	constexpr int clawForwardLimit = kEncoderUnit * 5; //5 rotations TODO test the top limit
-	constexpr int clawReverseLimit = kEncoderUnit * 0; //TODO test bottom limit
+	constexpr int clawReverseLimit = kEncoderUnit * 0; //TODO test bottom limit TODO if time then map elevator to claw so claw doesn't get smashed
 
 	unsigned int armCount;
 	unsigned int elevatorCount;
 	unsigned int driveState;
 
+	//Creating the TalonSRXs and sensors
 	Joystick *Joystick1, *Joystick2;
 	WPI_TalonSRX *DBLeft, *DBLeft2;
 	WPI_TalonSRX *DBRight, *DBRight2;
@@ -48,6 +49,8 @@ public:
 	ADXRS450_Gyro *gyro;
 	BuiltInAccelerometer *accel;
 	DifferentialDrive *drive;
+
+	//Setting up some functions
 	void MotorBuilder(WPI_TalonSRX *srx, bool brake, bool inverted, double RampTime, int CurrentLimit, int MaxCurrent, int MaxTime);
 	void RobotInit() override;
 	void AutonomousInit() override;
@@ -59,6 +62,6 @@ public:
 private:
 	frc::SendableChooser<std::string> m_chooser;
 	const std::string kAutoNameDefault = "Default";
-	const std::string kAutoNameCustom = "My Auto";
+	const std::string kAutoNameCustom = "No Auto";
 	std::string m_autoSelected;
 };

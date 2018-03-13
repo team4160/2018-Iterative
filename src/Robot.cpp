@@ -92,7 +92,7 @@ void Robot::RobotInit() {
 /**
  * This autonomous (along with the chooser code above) shows how to select
  * between different autonomous modes using the dashboard. The sendable chooser
- * code works with the Java SmartDas	hboard. If you prefer the LabVIEW Dashboard,
+ * code works with the Java SmartDashboard. If you prefer the LabVIEW Dashboard,
  * remove all of the chooser code and uncomment the GetString line to get the
  * auto name from the text box below the Gyro.
  *
@@ -110,7 +110,7 @@ void Robot::AutonomousInit() {
 	std::cout << "Auto selected: " << m_autoSelected << std::endl;
 
 	if (m_autoSelected == kAutoNameCustom) {
-		// Custom Auto goes here
+		// No Auto goes here
 	} else {
 		// Default Auto goes here
 		Wait(7);
@@ -126,7 +126,7 @@ void Robot::AutonomousInit() {
 
 void Robot::AutonomousPeriodic() {
 	if (m_autoSelected == kAutoNameCustom) {
-		// Custom Auto goes here
+		// No Auto goes here
 	} else {
 		// Default Auto goes here
 	}
@@ -139,7 +139,7 @@ void Robot::TeleopInit() {
 
 void Robot::TeleopPeriodic() {
 	if (Joystick1->GetRawButtonPressed(6))	//TODO get button
-		++driveState %= 3;
+		++driveState %= 3;	//increment and reset to 0 if 3 or more
 	switch (driveState) {
 	case 0:
 		double left = Joystick1->GetRawAxis(1) * -1;
@@ -154,7 +154,7 @@ void Robot::TeleopPeriodic() {
 	case 2:
 		double left = Joystick1->GetRawAxis(0) * -1;
 		double right = Joystick1->GetRawAxis(5) * -1;
-		drive->CurvatureDrive(right, left, Joystick1->GetRawButtonPressed(3));	//TODO get IsQuickTurn button
+		drive->CurvatureDrive(right, left, Joystick1->GetRawButtonPressed(3));	//TODO get IsQuickTurn button want right joy button
 	}
 	//TODO elevator buttons set levels
 	//TODO claw buttons set levels
