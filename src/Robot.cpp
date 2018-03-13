@@ -14,7 +14,7 @@ void Robot::MotorBuilder(WPI_TalonSRX *srx, bool brake = true, bool inverted = f
 	srx->ConfigContinuousCurrentLimit(CurrentLimit, kTimeoutMs);
 	srx->ConfigPeakCurrentLimit(MaxCurrent, kTimeoutMs);
 	srx->ConfigPeakCurrentDuration(MaxTime, kTimeoutMs);
-	if (CurrentLimit != 0) {
+	if (CurrentLimit > 0) {
 		srx->EnableCurrentLimit(true);
 	}
 }
@@ -23,10 +23,17 @@ void Robot::RobotInit() {
 	m_chooser.AddDefault(kAutoNameDefault, kAutoNameDefault);
 	m_chooser.AddObject(kAutoNameCustom, kAutoNameCustom);
 	frc::SmartDashboard::PutData("Auto Modes", &m_chooser);
+	driveState = 0;
 
 	//Setting the Controllers
 	Joystick1 = new Joystick(0);
 	Joystick2 = new Joystick(1);
+
+	gyro = new ADXRS450_Gyro(SPI::kOnboardCS0);
+	gyro->Calibrate();
+	gyro->Reset();
+
+	accel = new BuiltInAccelerometer();
 
 	DBLeft = new WPI_TalonSRX(1);
 	DBLeft2 = new WPI_TalonSRX(2);
@@ -66,15 +73,20 @@ void Robot::RobotInit() {
 
 	Claw->ConfigRemoteFeedbackFilter(clawSenor->GetDeviceNumber(), RemoteSensorSource::RemoteSensorSource_CANifier_Quadrature,/*REMOTE*/0,
 			kTimeoutMs);
-	Claw->ConfigRemoteFeedbackFilter(0x00, RemoteSensorSource::RemoteSensorSource_Off,/*REMOTE*/1, kTimeoutMs);
+	Claw->ConfigRemoteFeedbackFilter(0x00, RemoteSensorSource::RemoteSensorSource_Off,/*REMOTE*/1, kTimeoutMs); //turn off second sensor for claw
 	Claw->ConfigSelectedFeedbackSensor(FeedbackDevice::RemoteSensor0,/*PID_PRIMARY*/0, kTimeoutMs);
-	Claw->ConfigForwardSoftLimitEnable(true, kTimeoutMs);
 	Claw->ConfigForwardSoftLimitThreshold(clawForwardLimit, kTimeoutMs);
-	Claw->ConfigReverseSoftLimitEnable(true, kTimeoutMs);
+	Claw->ConfigForwardSoftLimitEnable(true, kTimeoutMs);
 	Claw->ConfigReverseSoftLimitThreshold(clawReverseLimit, kTimeoutMs);
-	Claw->SetSensorPhase(true); //Sensor Invert? TODO
+	Claw->ConfigReverseSoftLimitEnable(true, kTimeoutMs);
+	//Claw->SetSensorPhase(true); //Sensor Invert? TODO
 
 	//TODO add elevator encoder
+	Elevator1->ConfigRemoteFeedbackFilter(0x00, RemoteSensorSource::RemoteSensorSource_Off,/*REMOTE*/0, kTimeoutMs);
+	Elevator1->ConfigRemoteFeedbackFilter(0x00, RemoteSensorSource::RemoteSensorSource_Off,/*REMOTE*/1, kTimeoutMs);
+	Elevator1->ConfigSelectedFeedbackSensor(FeedbackDevice::CTRE_MagEncoder_Absolute, 0, kTimeoutMs);
+
+	drive = new DifferentialDrive(DBLeft, DBRight);
 }
 
 /**
@@ -108,6 +120,8 @@ void Robot::AutonomousInit() {
 		DBLeft->Set(0);
 		DBRight->Set(0);
 	}
+
+	Claw->Set(ControlMode::Position, 0);
 }
 
 void Robot::AutonomousPeriodic() {
@@ -124,12 +138,26 @@ void Robot::TeleopInit() {
 }
 
 void Robot::TeleopPeriodic() {
-	double left = Joystick1->GetRawAxis(1) * -1;
-	double right = Joystick1->GetRawAxis(5) * -1;
-	DBLeft->Set(left);
-	DBRight->Set(right);
-	//elevator buttons set level
-	Claw->Set(Joystick2->GetRawAxis(1) * -1);
+	if (Joystick1->GetRawButtonPressed(6))	//TODO get button
+		++driveState %= 3;
+	switch (driveState) {
+	case 0:
+		double left = Joystick1->GetRawAxis(1) * -1;
+		double right = Joystick1->GetRawAxis(5) * -1;
+		drive->TankDrive(left, right);
+		break;
+	case 1:
+		double left = Joystick1->GetRawAxis(0) * -1;
+		double right = Joystick1->GetRawAxis(5) * -1;
+		drive->ArcadeDrive(left, right);
+		break;
+	case 2:
+		double left = Joystick1->GetRawAxis(0) * -1;
+		double right = Joystick1->GetRawAxis(5) * -1;
+		drive->CurvatureDrive(right, left, Joystick1->GetRawButtonPressed(3));	//TODO get IsQuickTurn button
+	}
+	//TODO elevator buttons set levels
+	//TODO claw buttons set levels
 	if (Joystick2->GetRawButton(6)) {
 		ClawLeft->Set(1);
 		ClawRight->Set(1);

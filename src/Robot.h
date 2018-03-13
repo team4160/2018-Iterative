@@ -9,14 +9,12 @@
 #include "WPILib.h"
 #include "ctre/Phoenix.h"
 #include <iostream>
-#include <SmartDashboard/SmartDashboard.h>
 #include <string>
-#include <IterativeRobot.h>
-#include <SmartDashboard/SendableChooser.h>
 
 class Robot : public frc::IterativeRobot {
 public:
 	constexpr int kTimeoutMs = 10;
+	constexpr int kEncoderUnit = 4096;
 
 	//Setting up the TalonSRXs
 	constexpr double driveRampTime = 0.25;
@@ -34,17 +32,22 @@ public:
 	constexpr int elevatorMaxCurrent = 35;
 	constexpr int elevatorMaxTime = 100;
 
-	constexpr int clawForwardLimit = 4096 * 5;//5 rotations TODO test the top limit
-	constexpr int clawReverseLimit = 4096 * 0;//TODO test bottom limit
+	constexpr int clawForwardLimit = kEncoderUnit * 5; //5 rotations TODO test the top limit
+	constexpr int clawReverseLimit = kEncoderUnit * 0; //TODO test bottom limit
 
 	unsigned int armCount;
 	unsigned int elevatorCount;
+	unsigned int driveState;
+
 	Joystick *Joystick1, *Joystick2;
 	WPI_TalonSRX *DBLeft, *DBLeft2;
 	WPI_TalonSRX *DBRight, *DBRight2;
 	WPI_TalonSRX *Claw, *ClawLeft, *ClawRight;
 	WPI_TalonSRX *Elevator1, *Elevator2, *Elevator3;
 	CANifier *clawSenor;
+	ADXRS450_Gyro *gyro;
+	BuiltInAccelerometer *accel;
+	DifferentialDrive *drive;
 	void MotorBuilder(WPI_TalonSRX *srx, bool brake, bool inverted, double RampTime, int CurrentLimit, int MaxCurrent, int MaxTime);
 	void RobotInit() override;
 	void AutonomousInit() override;
