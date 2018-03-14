@@ -48,15 +48,20 @@ public:
 	CANifier *clawSenor;
 	ADXRS450_Gyro *gyro;
 	BuiltInAccelerometer *accel;
+	PowerDistributionPanel *PDP;
 	DifferentialDrive *drive;
 
 	//Setting up some functions
 	void MotorBuilder(WPI_TalonSRX *srx, bool brake, bool inverted, double RampTime, int CurrentLimit, int MaxCurrent, int MaxTime);
-	void RobotInit() override;
 	void AutonomousInit() override;
 	void AutonomousPeriodic() override;
+	void DisabledInit() override;
+	void DisabledPeriodic() override;
+	void RobotInit() override;
+	void RobotPeriodic() override;
 	void TeleopInit() override;
 	void TeleopPeriodic() override;
+	void TestInit() override;
 	void TestPeriodic() override;
 
 private:

@@ -30,9 +30,7 @@ void Robot::RobotInit() {
 	Joystick2 = new Joystick(1);
 
 	gyro = new ADXRS450_Gyro(SPI::kOnboardCS0);
-	gyro->Calibrate();
-	gyro->Reset();
-
+	PDP = new PowerDistributionPanel(0);
 	accel = new BuiltInAccelerometer();
 
 	DBLeft = new WPI_TalonSRX(1);
@@ -75,12 +73,11 @@ void Robot::RobotInit() {
 			kTimeoutMs);
 	Claw->ConfigRemoteFeedbackFilter(0x00, RemoteSensorSource::RemoteSensorSource_Off,/*REMOTE*/1, kTimeoutMs); //turn off second sensor for claw
 	Claw->ConfigSelectedFeedbackSensor(FeedbackDevice::RemoteSensor0,/*PID_PRIMARY*/0, kTimeoutMs);
-	Claw->ConfigForwardSoftLimitThreshold(clawForwardLimit, kTimeoutMs);
-	Claw->ConfigForwardSoftLimitEnable(true, kTimeoutMs);
-	Claw->ConfigReverseSoftLimitThreshold(clawReverseLimit, kTimeoutMs);
-	Claw->ConfigReverseSoftLimitEnable(true, kTimeoutMs);
+	/*Claw->ConfigForwardSoftLimitThreshold(clawForwardLimit, kTimeoutMs);
+	 Claw->ConfigForwardSoftLimitEnable(true, kTimeoutMs);
+	 Claw->ConfigReverseSoftLimitThreshold(clawReverseLimit, kTimeoutMs);
+	 Claw->ConfigReverseSoftLimitEnable(true, kTimeoutMs);*/
 	//Claw->SetSensorPhase(true); //Sensor Invert? TODO
-
 	//TODO add elevator encoder
 	Elevator1->ConfigRemoteFeedbackFilter(0x00, RemoteSensorSource::RemoteSensorSource_Off,/*REMOTE*/0, kTimeoutMs);
 	Elevator1->ConfigRemoteFeedbackFilter(0x00, RemoteSensorSource::RemoteSensorSource_Off,/*REMOTE*/1, kTimeoutMs);
@@ -105,8 +102,7 @@ void Robot::AutonomousInit() {
 	elevatorCount = 0;
 
 	m_autoSelected = m_chooser.GetSelected();
-	// m_autoSelected = SmartDashboard::GetString(
-	// 		"Auto Selector", kAutoNameDefault);
+	//m_autoSelected = SmartDashboard::GetString("Auto Selector", kAutoNameDefault);
 	std::cout << "Auto selected: " << m_autoSelected << std::endl;
 
 	if (m_autoSelected == kAutoNameCustom) {
@@ -121,7 +117,7 @@ void Robot::AutonomousInit() {
 		DBRight->Set(0);
 	}
 
-	Claw->Set(ControlMode::Position, 0);
+	Claw->Set(ControlMode::Position, 0);	//move claw down
 }
 
 void Robot::AutonomousPeriodic() {
@@ -138,8 +134,19 @@ void Robot::TeleopInit() {
 }
 
 void Robot::TeleopPeriodic() {
-	if (Joystick1->GetRawButtonPressed(6))	//TODO get button
-		++driveState %= 3;	//increment and reset to 0 if 3 or more
+	if (Joystick1->GetRawButtonPressed(6)) {	//TODO get button
+		++driveState %= 3;	//increment and reset to 0 if 3
+		switch (driveState) {
+		case 0:
+			std::cout << "Tank Drive" << std::endl;
+			break;
+		case 1:
+			std::cout << "Arcade Drive" << std::endl;
+			break;
+		case 2:
+			std::cout << "Curvature Drive" << std::endl;
+		}
+	}
 	switch (driveState) {
 	case 0:
 		double left = Joystick1->GetRawAxis(1) * -1;
@@ -168,6 +175,16 @@ void Robot::TeleopPeriodic() {
 		ClawLeft->Set(0);
 		ClawRight->Set(0);
 	}
+	frc::SmartDashboard::PutNumber("Gyroscope", gyro->GetAngle());
+	frc::SmartDashboard::PutNumber("POV", Joystick1->GetPOV());
+	frc::SmartDashboard::PutNumber("Elevator", Elevator1->GetSelectedSensorPosition(0));
+	frc::SmartDashboard::PutNumber("Elevator Pulse", Elevator1->GetSensorCollection().GetPulseWidthPosition());
+	frc::SmartDashboard::PutNumber("Claw", Claw->GetSelectedSensorPosition(0));
+	frc::SmartDashboard::PutNumber("Claw Pulse", Claw->GetSensorCollection().GetPulseWidthPosition());
+}
+
+void Robot::DisabledPeriodic() {
+	gyro->Calibrate();
 }
 
 void Robot::TestPeriodic() {
