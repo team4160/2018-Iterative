@@ -15,6 +15,8 @@ class Robot : public frc::IterativeRobot {
 public:
 	constexpr int kTimeoutMs = 10;
 	constexpr int kEncoderUnit = 4096;
+	constexpr int kClawEncoderHigh = 4096;//TODO find high position
+	constexpr int kElevatorEncoderLow = 0;//TODO find high position
 
 	//Setting up the TalonSRX's config
 	constexpr double driveRampTime = 0.25;
@@ -24,7 +26,7 @@ public:
 
 	constexpr double clawRampTime = 0.25;
 	constexpr int clawCurrentLimit = 10;
-	constexpr int clawMaxCurrent = 20;//claw shouldn't need a lot of current
+	constexpr int clawMaxCurrent = 20; //claw shouldn't need a lot of current
 	constexpr int clawMaxTime = 100;
 
 	constexpr double elevatorRampTime = 0.25;

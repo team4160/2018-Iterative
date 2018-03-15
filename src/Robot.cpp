@@ -75,6 +75,8 @@ void Robot::RobotInit() {
 	Claw->ConfigRemoteFeedbackFilter(0x00, RemoteSensorSource::RemoteSensorSource_Off,/*REMOTE*/1, kTimeoutMs); //turn off second sensor for claw
 	Claw->ConfigSelectedFeedbackSensor(FeedbackDevice::RemoteSensor0,/*PID_PRIMARY*/0, kTimeoutMs);
 	//Claw->SetSensorPhase(true); //Sensor Invert? TODO
+	Claw->ConfigForwardLimitSwitchSource(RemoteLimitSwitchSource_RemoteCANifier, LimitSwitchNormal_NormallyOpen,
+			clawSenor->GetDeviceNumber(), 0);
 
 	//TODO Claw PID See 10.1 set P=1 I=~10+
 
@@ -84,10 +86,11 @@ void Robot::RobotInit() {
 	 Claw->ConfigReverseSoftLimitThreshold(clawReverseLimit, kTimeoutMs);
 	 Claw->ConfigReverseSoftLimitEnable(true, kTimeoutMs);*/
 
-	//elevator encoder
+	//elevator senors
 	Elevator1->ConfigRemoteFeedbackFilter(0x00, RemoteSensorSource::RemoteSensorSource_Off,/*REMOTE*/0, kTimeoutMs);
 	Elevator1->ConfigRemoteFeedbackFilter(0x00, RemoteSensorSource::RemoteSensorSource_Off,/*REMOTE*/1, kTimeoutMs);
 	Elevator1->ConfigSelectedFeedbackSensor(FeedbackDevice::CTRE_MagEncoder_Absolute, 0, kTimeoutMs);
+	Elevator1->ConfigReverseLimitSwitchSource(LimitSwitchSource_FeedbackConnector, LimitSwitchNormal_NormallyOpen, 0); //TODO not sure if switches are NormallyOpen
 
 	drive = new DifferentialDrive(DBLeft, DBRight);
 }
@@ -121,9 +124,25 @@ void Robot::AutonomousInit() {
 		Wait(3.5);
 		DBLeft->Set(0);
 		DBRight->Set(0);
-	}//TODO figure out how to turn 90 degree
+	} //TODO figure out how to turn 90 degree
 
+	//TODO make this a function so can be called in teleop
+
+	//find Claw up position
+	Claw->Set(ControlMode::PercentOutput, 0.04);
+	while (!clawSenor->GetGeneralInput(clawSenor->LIMF)) { //TODO not sure if switches are NormallyOpen
+		Wait(0.005);
+	}
+	Claw->SetSelectedSensorPosition(kClawEncoderHigh,/*REMOTE*/0,/*TimeOut*/0);
 	Claw->Set(ControlMode::Position, 0);	//move claw down
+
+	//find Elevator down position
+	Elevator1->Set(ControlMode::PercentOutput, -0.04);
+	while (!Elevator1->GetSensorCollection().IsRevLimitSwitchClosed()) {
+		Wait(0.005);
+	}
+	Elevator1->SetSelectedSensorPosition(kElevatorEncoderLow,/*REMOTE*/0,/*TimeOut*/0);
+	Elevator1->Set(ControlMode::Position, 0);	//move claw down
 }
 
 void Robot::AutonomousPeriodic() {
