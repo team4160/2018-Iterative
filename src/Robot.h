@@ -18,19 +18,19 @@ public:
 
 	//Setting up the TalonSRX's config
 	constexpr double driveRampTime = 0.25;
-	constexpr int driveCurrentLimit = 30;
-	constexpr int driveMaxCurrent = 38;
-	constexpr int driveMaxTime = 100;
+	constexpr int driveCurrentLimit = 33;
+	constexpr int driveMaxCurrent = 39;
+	constexpr int driveMaxTime = 500;
 
 	constexpr double clawRampTime = 0.25;
-	constexpr int clawCurrentLimit = 20;
-	constexpr int clawMaxCurrent = 25;
+	constexpr int clawCurrentLimit = 10;
+	constexpr int clawMaxCurrent = 20;//claw shouldn't need a lot of current
 	constexpr int clawMaxTime = 100;
 
 	constexpr double elevatorRampTime = 0.25;
-	constexpr int elevatorCurrentLimit = 30;
-	constexpr int elevatorMaxCurrent = 35;
-	constexpr int elevatorMaxTime = 100;
+	constexpr int elevatorCurrentLimit = 33;
+	constexpr int elevatorMaxCurrent = 39;
+	constexpr int elevatorMaxTime = 500;
 
 	constexpr int clawForwardLimit = kEncoderUnit * 5; //5 rotations TODO test the top limit
 	constexpr int clawReverseLimit = kEncoderUnit * 0; //TODO test bottom limit TODO if time then map elevator to claw so claw doesn't get smashed
