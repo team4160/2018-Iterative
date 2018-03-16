@@ -190,10 +190,18 @@ void Robot::TeleopPeriodic() {
 		right = Joystick1->GetRawAxis(PS4::LeftStickRight);
 		drive->CurvatureDrive(left, right,/*quick turn*/Joystick1->GetRawButtonPressed(PS4::R3));
 	}
-
-	//TODO elevator buttons set levels
-	//TODO claw buttons set levels
-
+	/*
+	 //TODO elevator buttons set levels
+	 if (Joystick1->GetRawButtonPressed(PS4::Square)){
+	 Elevator1->Set(ControlMode::Position, 0);
+	 }
+	 //TODO claw buttons set levels
+	 if (Joystick1->GetPOV()==180){
+	 Claw->Set(ControlMode::Position, 0);
+	 }else if(Joystick1->GetPOV()==0){
+	 Claw->Set(ControlMode::Position, 90);
+	 }
+	 */
 	//Claw intakes
 	if (Joystick2->GetRawButton(6)) {
 		ClawLeft->Set(1);
