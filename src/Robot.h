@@ -70,8 +70,6 @@ private:
 	const std::string kAutoNameCustom = "No Auto";
 	std::string m_autoSelected;
 
-	unsigned int armCount;
-	unsigned int elevatorCount;
 	unsigned int driveState;
 
 	double left;

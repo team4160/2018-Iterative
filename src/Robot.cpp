@@ -41,7 +41,7 @@ void Robot::RobotInit() {
 	m_chooser.AddDefault(kAutoNameDefault, kAutoNameDefault);
 	m_chooser.AddObject(kAutoNameCustom, kAutoNameCustom);
 	frc::SmartDashboard::PutData("Auto Modes", &m_chooser);
-	driveState = 0;
+	driveState = 0;	//set to tank
 
 	//Setting the Controllers
 	Joystick1 = new Joystick(0);
@@ -111,7 +111,8 @@ void Robot::RobotInit() {
 	Elevator1->ConfigRemoteFeedbackFilter(0x00, RemoteSensorSource::RemoteSensorSource_Off,/*REMOTE*/1, kTimeoutMs);
 	Elevator1->ConfigSelectedFeedbackSensor(FeedbackDevice::CTRE_MagEncoder_Absolute, 0, kTimeoutMs);
 	Elevator1->ConfigReverseLimitSwitchSource(LimitSwitchSource_FeedbackConnector, LimitSwitchNormal_NormallyOpen, 0);
-	Elevator1->Config_kI(/*slot*/0, 0.5, kTimeoutMs);
+	Elevator1->Config_kP(/*slot*/0, 0.5, kTimeoutMs);
+	Elevator1->Config_kI(/*slot*/0, 0.2, kTimeoutMs);
 
 	drive = new DifferentialDrive(*DBLeft, *DBRight);
 }
@@ -128,9 +129,6 @@ void Robot::RobotInit() {
  * make sure to add them to the chooser code above as well.
  */
 void Robot::AutonomousInit() {
-	armCount = 0;
-	elevatorCount = 0;
-
 	m_autoSelected = m_chooser.GetSelected();
 	//m_autoSelected = SmartDashboard::GetString("Auto Selector", kAutoNameDefault);
 	std::cout << "Auto selected: " << m_autoSelected << std::endl;
@@ -147,7 +145,7 @@ void Robot::AutonomousInit() {
 		DBRight->Set(0);
 	} //TODO figure out how to turn 90 degree in auto
 
-	FindLimits(); //convert so it is in AutonomousPeriodic
+	//FindLimits(); uncomment when limit switches are installed //TODO convert so it is in AutonomousPeriodic
 }
 
 void Robot::AutonomousPeriodic() {
@@ -159,8 +157,7 @@ void Robot::AutonomousPeriodic() {
 }
 
 void Robot::TeleopInit() {
-	armCount = 0;
-	elevatorCount = 0;
+
 }
 
 void Robot::TeleopPeriodic() {
@@ -179,19 +176,19 @@ void Robot::TeleopPeriodic() {
 	}
 	switch (driveState) {
 	case 0:
-		left = Joystick1->GetRawAxis(1) * -1;
-		right = Joystick1->GetRawAxis(5) * -1;
-		drive->TankDrive(left, right);
+		left = Joystick1->GetRawAxis(PS4::LeftStickDown) * -1;
+		right = Joystick1->GetRawAxis(PS4::RightStickDown) * -1;
+		drive->TankDrive(left, right, /*Squared Inputs*/true);
 		break;
 	case 1:
-		left = Joystick1->GetRawAxis(0) * -1;
-		right = Joystick1->GetRawAxis(5) * -1;
-		drive->ArcadeDrive(left, right);
+		left = Joystick1->GetRawAxis(PS4::RightStickDown) * -1;
+		right = Joystick1->GetRawAxis(PS4::LeftStickRight);
+		drive->ArcadeDrive(left, right, /*Squared Inputs*/true);
 		break;
 	case 2:
-		left = Joystick1->GetRawAxis(0) * -1;
-		right = Joystick1->GetRawAxis(5) * -1;
-		drive->CurvatureDrive(right, left,/*quick turn*/Joystick1->GetRawButtonPressed(PS4::R3));
+		left = Joystick1->GetRawAxis(PS4::RightStickDown) * -1;
+		right = Joystick1->GetRawAxis(PS4::LeftStickRight);
+		drive->CurvatureDrive(left, right,/*quick turn*/Joystick1->GetRawButtonPressed(PS4::R3));
 	}
 
 	//TODO elevator buttons set levels
