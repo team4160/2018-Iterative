@@ -32,3 +32,4 @@
 *.app
 /Debug/FRCUserProgram
 /Debug/
+/.settings/language.settings.xml

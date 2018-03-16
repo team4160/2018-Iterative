@@ -6,40 +6,37 @@
 /*----------------------------------------------------------------------------*/
 
 #pragma once
+#include "Constants.h"
 #include "WPILib.h"
 #include "ctre/Phoenix.h"
 #include <iostream>
 #include <string>
 
-class Robot : public frc::IterativeRobot {
+class Robot: public frc::IterativeRobot {
 public:
-	constexpr int kTimeoutMs = 10;
-	constexpr int kEncoderUnit = 4096;
-	constexpr int kClawEncoderHigh = 4096;//TODO find high position
-	constexpr int kElevatorEncoderLow = 0;//TODO find high position
+	static constexpr int kTimeoutMs = 10;
+	static constexpr int kEncoderUnit = 4096;
+	static constexpr int kClawEncoderKnownHigh = 4096; //TODO find high position
+	static constexpr int kElevatorEncoderKnownLow = 0; //TODO find high position
 
 	//Setting up the TalonSRX's config
-	constexpr double driveRampTime = 0.25;
-	constexpr int driveCurrentLimit = 33;
-	constexpr int driveMaxCurrent = 39;
-	constexpr int driveMaxTime = 500;
+	static constexpr double driveRampTime = 0.25;
+	static constexpr int driveCurrentLimit = 33;
+	static constexpr int driveMaxCurrent = 39;
+	static constexpr int driveMaxTime = 500;
 
-	constexpr double clawRampTime = 0.25;
-	constexpr int clawCurrentLimit = 10;
-	constexpr int clawMaxCurrent = 20; //claw shouldn't need a lot of current
-	constexpr int clawMaxTime = 100;
+	static constexpr double clawRampTime = 0.25;
+	static constexpr int clawCurrentLimit = 10;
+	static constexpr int clawMaxCurrent = 20; //claw shouldn't need a lot of current
+	static constexpr int clawMaxTime = 100;
 
-	constexpr double elevatorRampTime = 0.25;
-	constexpr int elevatorCurrentLimit = 33;
-	constexpr int elevatorMaxCurrent = 39;
-	constexpr int elevatorMaxTime = 500;
+	static constexpr double elevatorRampTime = 0.25;
+	static constexpr int elevatorCurrentLimit = 33;
+	static constexpr int elevatorMaxCurrent = 39;
+	static constexpr int elevatorMaxTime = 500;
 
-	constexpr int clawForwardLimit = kEncoderUnit * 5; //5 rotations TODO test the top limit
-	constexpr int clawReverseLimit = kEncoderUnit * 0; //TODO test bottom limit TODO if time then map elevator to claw so claw doesn't get smashed
-
-	unsigned int armCount;
-	unsigned int elevatorCount;
-	unsigned int driveState;
+	static constexpr int clawForwardLimit = kEncoderUnit * 5; //5 rotations TODO test the top limit
+	static constexpr int clawReverseLimit = kEncoderUnit * 0; //TODO test bottom limit TODO if time then map elevator to claw so claw doesn't get smashed
 
 	//Creating the TalonSRXs and sensors
 	Joystick *Joystick1, *Joystick2;
@@ -54,7 +51,9 @@ public:
 	DifferentialDrive *drive;
 
 	//Setting up some functions
-	void MotorBuilder(WPI_TalonSRX *srx, bool brake, bool inverted, double RampTime, int CurrentLimit, int MaxCurrent, int MaxTime);
+	void MotorBuilder(WPI_TalonSRX *srx, bool brake, bool inverted, double RampTime, int CurrentLimit, int MaxCurrent,
+			int MaxTime);
+	void FindLimits();
 	void AutonomousInit() override;
 	void AutonomousPeriodic() override;
 	void DisabledInit() override;
@@ -71,4 +70,11 @@ private:
 	const std::string kAutoNameDefault = "Default";
 	const std::string kAutoNameCustom = "No Auto";
 	std::string m_autoSelected;
+
+	unsigned int armCount;
+	unsigned int elevatorCount;
+	unsigned int driveState;
+
+	double left;
+	double right;
 };
