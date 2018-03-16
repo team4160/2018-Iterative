@@ -78,17 +78,14 @@ void Robot::RobotInit() {
 	MotorBuilder(Claw, /*brake*/true,/*invert*/false, clawRampTime, clawCurrentLimit, clawMaxCurrent, clawMaxTime);
 	MotorBuilder(ClawLeft, /*brake*/true,/*invert*/false, clawRampTime, clawCurrentLimit, clawMaxCurrent, clawMaxTime);
 	MotorBuilder(ClawRight, /*brake*/true,/*invert*/true, clawRampTime, clawCurrentLimit, clawMaxCurrent, clawMaxTime);
-	MotorBuilder(Elevator1, /*brake*/true,/*invert*/false, elevatorRampTime, elevatorCurrentLimit, elevatorMaxCurrent,
-			elevatorMaxTime);
-	MotorBuilder(Elevator2, /*brake*/true,/*invert*/false, elevatorRampTime, elevatorCurrentLimit, elevatorMaxCurrent,
-			elevatorMaxTime);
-	MotorBuilder(Elevator3, /*brake*/true,/*invert*/false, elevatorRampTime, elevatorCurrentLimit, elevatorMaxCurrent,
-			elevatorMaxTime);
+	MotorBuilder(Elevator1, /*brake*/true,/*invert*/false, elevatorRampTime, elevatorCurrentLimit, elevatorMaxCurrent, elevatorMaxTime);
+	MotorBuilder(Elevator2, /*brake*/true,/*invert*/false, elevatorRampTime, elevatorCurrentLimit, elevatorMaxCurrent, elevatorMaxTime);
+	MotorBuilder(Elevator3, /*brake*/true,/*invert*/false, elevatorRampTime, elevatorCurrentLimit, elevatorMaxCurrent, elevatorMaxTime);
 
 	//Add CANifier encoder
 	clawSenor->ConfigVelocityMeasurementPeriod(CANifierVelocityMeasPeriod::Period_100Ms, kTimeoutMs);
 	clawSenor->ConfigVelocityMeasurementWindow(64, kTimeoutMs);
-	clawSenor->SetStatusFramePeriod(CANifierStatusFrame::CANifierStatusFrame_Status_2_General, 10, kTimeoutMs); /* speed up quadrature DIO */
+	clawSenor->SetStatusFramePeriod(CANifierStatusFrame::CANifierStatusFrame_Status_2_General, /*refresh rate*/10, kTimeoutMs); /* speed up quadrature DIO */
 
 	//attach CANifier to Claw motor
 	Claw->ConfigRemoteFeedbackFilter(clawSenor->GetDeviceNumber(), RemoteSensorSource::RemoteSensorSource_CANifier_Quadrature,/*REMOTE*/
@@ -99,21 +96,22 @@ void Robot::RobotInit() {
 	Claw->ConfigForwardLimitSwitchSource(RemoteLimitSwitchSource_RemoteCANifier, LimitSwitchNormal_NormallyOpen,
 			clawSenor->GetDeviceNumber(), 0);
 
-	//TODO Claw PID See 10.1 set P=1 I=~10+
-	Claw->Config_kP(0, 1, kTimeoutMs);
-	Claw->Config_kI(0, 10, kTimeoutMs);
+	//TODO Claw PID See 10.1 set P=1 I=10+
+	Claw->Config_kP(/*slot*/0, 1, kTimeoutMs);
+	Claw->Config_kI(/*slot*/0, 10, kTimeoutMs);
 
-	//create encoder limits
+	//TODO create encoder limits
 	/*Claw->ConfigForwardSoftLimitThreshold(clawForwardLimit, kTimeoutMs);
 	 Claw->ConfigForwardSoftLimitEnable(true, kTimeoutMs);
 	 Claw->ConfigReverseSoftLimitThreshold(clawReverseLimit, kTimeoutMs);
 	 Claw->ConfigReverseSoftLimitEnable(true, kTimeoutMs);*/
 
-	//elevator senors
+	//elevator sensors
 	Elevator1->ConfigRemoteFeedbackFilter(0x00, RemoteSensorSource::RemoteSensorSource_Off,/*REMOTE*/0, kTimeoutMs);
 	Elevator1->ConfigRemoteFeedbackFilter(0x00, RemoteSensorSource::RemoteSensorSource_Off,/*REMOTE*/1, kTimeoutMs);
 	Elevator1->ConfigSelectedFeedbackSensor(FeedbackDevice::CTRE_MagEncoder_Absolute, 0, kTimeoutMs);
 	Elevator1->ConfigReverseLimitSwitchSource(LimitSwitchSource_FeedbackConnector, LimitSwitchNormal_NormallyOpen, 0);
+	Elevator1->Config_kI(/*slot*/0, 0.5, kTimeoutMs);
 
 	drive = new DifferentialDrive(*DBLeft, *DBRight);
 }
@@ -149,7 +147,7 @@ void Robot::AutonomousInit() {
 		DBRight->Set(0);
 	} //TODO figure out how to turn 90 degree in auto
 
-	FindLimits();
+	FindLimits(); //convert so it is in AutonomousPeriodic
 }
 
 void Robot::AutonomousPeriodic() {
@@ -199,7 +197,7 @@ void Robot::TeleopPeriodic() {
 	//TODO elevator buttons set levels
 	//TODO claw buttons set levels
 
-	//Claw intake/outtake
+	//Claw intakes
 	if (Joystick2->GetRawButton(6)) {
 		ClawLeft->Set(1);
 		ClawRight->Set(1);
@@ -214,8 +212,10 @@ void Robot::TeleopPeriodic() {
 	frc::SmartDashboard::PutNumber("POV", Joystick1->GetPOV());
 	frc::SmartDashboard::PutNumber("Elevator", Elevator1->GetSelectedSensorPosition(0));
 	frc::SmartDashboard::PutNumber("Elevator Pulse", Elevator1->GetSensorCollection().GetPulseWidthPosition());
+	frc::SmartDashboard::PutNumber("Elevator Quad", Elevator1->GetSensorCollection().GetQuadraturePosition());
 	frc::SmartDashboard::PutNumber("Claw", Claw->GetSelectedSensorPosition(0));
 	frc::SmartDashboard::PutNumber("Claw Pulse", Claw->GetSensorCollection().GetPulseWidthPosition());
+	frc::SmartDashboard::PutNumber("Claw Quad", Claw->GetSensorCollection().GetQuadraturePosition());
 }
 
 void Robot::DisabledInit() {

@@ -12,11 +12,11 @@
 #include <iostream>
 #include <string>
 
-class Robot: public frc::IterativeRobot {
+class Robot : public frc::IterativeRobot {
 public:
 	static constexpr int kTimeoutMs = 10;
 	static constexpr int kEncoderUnit = 4096;
-	static constexpr int kClawEncoderKnownHigh = 4096; //TODO find high position
+	static constexpr int kClawEncoderKnownHigh = 4096; //TODO find low position
 	static constexpr int kElevatorEncoderKnownLow = 0; //TODO find high position
 
 	//Setting up the TalonSRX's config
@@ -51,8 +51,7 @@ public:
 	DifferentialDrive *drive;
 
 	//Setting up some functions
-	void MotorBuilder(WPI_TalonSRX *srx, bool brake, bool inverted, double RampTime, int CurrentLimit, int MaxCurrent,
-			int MaxTime);
+	void MotorBuilder(WPI_TalonSRX *srx, bool brake, bool inverted, double RampTime, int CurrentLimit, int MaxCurrent, int MaxTime);
 	void FindLimits();
 	void AutonomousInit() override;
 	void AutonomousPeriodic() override;
