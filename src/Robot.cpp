@@ -61,6 +61,7 @@ void Robot::RobotInit() {
 	Elevator1 = new WPI_TalonSRX(8);
 	Elevator2 = new WPI_TalonSRX(9);
 	Elevator3 = new WPI_TalonSRX(10);
+	ElevatorSolenoid = new DoubleSolenoid(0, 1);
 
 	clawSenor = new CANifier(21);
 

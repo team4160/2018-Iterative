@@ -44,6 +44,7 @@ public:
 	WPI_TalonSRX *DBRight, *DBRight2;
 	WPI_TalonSRX *Claw, *ClawLeft, *ClawRight;
 	WPI_TalonSRX *Elevator1, *Elevator2, *Elevator3;
+	DoubleSolenoid *ElevatorSolenoid;
 	CANifier *clawSenor;
 	ADXRS450_Gyro *gyro;
 	BuiltInAccelerometer *accel;
