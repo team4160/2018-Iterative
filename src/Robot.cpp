@@ -61,7 +61,7 @@ void Robot::RobotInit() {
 	Elevator1 = new WPI_TalonSRX(8);
 	Elevator2 = new WPI_TalonSRX(9);
 	Elevator3 = new WPI_TalonSRX(10);
-	ElevatorSolenoid = new DoubleSolenoid(0, 1);
+	ElevatorSolenoid = new DoubleSolenoid(/*moduleNumber*/0, /*forwardChannel*/0,/*reverseChannel*/1);
 
 	clawSenor = new CANifier(21);
 
@@ -97,7 +97,7 @@ void Robot::RobotInit() {
 	Claw->ConfigForwardLimitSwitchSource(RemoteLimitSwitchSource_RemoteCANifier, LimitSwitchNormal_NormallyOpen,
 			clawSenor->GetDeviceNumber(), 0);
 
-	//TODO Claw PID See 10.1 set P=1 I=10+
+	//TODO Claw PID See 10.1 set P=1 I=10+ maybe don't override but use website
 	Claw->Config_kP(/*slot*/0, 1, kTimeoutMs);
 	Claw->Config_kI(/*slot*/0, 10, kTimeoutMs);
 
@@ -116,6 +116,7 @@ void Robot::RobotInit() {
 	Elevator1->Config_kI(/*slot*/0, 0.2, kTimeoutMs);
 
 	drive = new DifferentialDrive(*DBLeft, *DBRight);
+	ElevatorSolenoid->Set(DoubleSolenoid::Value::kOff);
 }
 
 /**
@@ -130,10 +131,20 @@ void Robot::RobotInit() {
  * make sure to add them to the chooser code above as well.
  */
 void Robot::AutonomousInit() {
+	gameData = frc::DriverStation::GetInstance().GetGameSpecificMessage();
+
 	m_autoSelected = m_chooser.GetSelected();
 	//m_autoSelected = SmartDashboard::GetString("Auto Selector", kAutoNameDefault);
 	std::cout << "Auto selected: " << m_autoSelected << std::endl;
-
+	/*
+	 if (gameData.length > 0) {
+	 if (gameData[0] == 'L') {
+	 //Put left auto code here
+	 } else {
+	 //Put right auto code here
+	 }
+	 }
+	 */
 	if (m_autoSelected == kAutoNameCustom) {
 		// No Auto goes here
 	} else {
@@ -146,7 +157,7 @@ void Robot::AutonomousInit() {
 		DBRight->Set(0);
 	} //TODO figure out how to turn 90 degree in auto
 
-	//FindLimits(); uncomment when limit switches are installed //TODO convert so it is in AutonomousPeriodic
+	//FindLimits(); TODO uncomment when limit switches are installed //TODO convert so it is in AutonomousPeriodic
 }
 
 void Robot::AutonomousPeriodic() {
@@ -158,6 +169,7 @@ void Robot::AutonomousPeriodic() {
 }
 
 void Robot::TeleopInit() {
+	gameData = frc::DriverStation::GetInstance().GetGameSpecificMessage();
 
 }
 
@@ -214,6 +226,7 @@ void Robot::TeleopPeriodic() {
 		ClawLeft->Set(0);
 		ClawRight->Set(0);
 	}
+
 	frc::SmartDashboard::PutNumber("Gyroscope", gyro->GetAngle());
 	frc::SmartDashboard::PutNumber("POV", Joystick1->GetPOV());
 	frc::SmartDashboard::PutNumber("Elevator", Elevator1->GetSelectedSensorPosition(0));

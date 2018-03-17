@@ -14,7 +14,7 @@
 
 class Robot : public frc::IterativeRobot {
 public:
-	static constexpr int kTimeoutMs = 10;
+	static constexpr int kTimeoutMs = 10; //change this to 0 if you don't want verification
 	static constexpr int kEncoderUnit = 4096;
 	static constexpr int kClawEncoderKnownHigh = 4096; //TODO find low position
 	static constexpr int kElevatorEncoderKnownLow = 0; //TODO find high position
@@ -37,6 +37,7 @@ public:
 
 	static constexpr int clawForwardLimit = kEncoderUnit * 5; //5 rotations TODO test the top limit
 	static constexpr int clawReverseLimit = kEncoderUnit * 0; //TODO test bottom limit TODO if time then map elevator to claw so claw doesn't get smashed
+	static std::string gameData;
 
 	//Creating the TalonSRXs and sensors
 	Joystick *Joystick1, *Joystick2;
