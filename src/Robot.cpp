@@ -155,7 +155,7 @@ void Robot::AutonomousInit() {
 		Wait(3.5);
 		DBLeft->Set(0);
 		DBRight->Set(0);
-	} //TODO figure out how to turn 90 degree in auto
+	} //TODO figure out how to turn 90 degree in auto with time and encoder
 
 	//FindLimits(); TODO uncomment when limit switches are installed //TODO convert so it is in AutonomousPeriodic
 }
@@ -210,9 +210,9 @@ void Robot::TeleopPeriodic() {
 	 }
 	 //TODO claw buttons set levels
 	 if (Joystick1->GetPOV()==180){
-	 Claw->Set(ControlMode::Position, 0);
+	 Claw->Set(ControlMode::Position, down);
 	 }else if(Joystick1->GetPOV()==0){
-	 Claw->Set(ControlMode::Position, 90);
+	 Claw->Set(ControlMode::Position, up);
 	 }
 	 */
 	//Claw intakes
@@ -235,6 +235,10 @@ void Robot::TeleopPeriodic() {
 	frc::SmartDashboard::PutNumber("Claw", Claw->GetSelectedSensorPosition(0));
 	frc::SmartDashboard::PutNumber("Claw Pulse", Claw->GetSensorCollection().GetPulseWidthPosition());
 	frc::SmartDashboard::PutNumber("Claw Quad", Claw->GetSensorCollection().GetQuadraturePosition());
+
+	//just for testing
+	Claw->Set(ControlMode::PercentOutput, Joystick2->GetRawAxis(Attack::Up) * -1);
+	Elevator1->Set(ControlMode::PercentOutput, Joystick2->GetRawAxis(Attack::Throttle));
 }
 
 void Robot::DisabledInit() {

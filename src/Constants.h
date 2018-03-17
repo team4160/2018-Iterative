@@ -29,3 +29,9 @@ enum PS4 {
 	L2In = 3,
 	R2In = 4
 };
+
+enum Attack {
+	Up = 1, //TODO find axis numbers
+	Right = 2,
+	Throttle = 4
+};
