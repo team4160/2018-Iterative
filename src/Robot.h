@@ -37,7 +37,6 @@ public:
 
 	static constexpr int clawForwardLimit = kEncoderUnit * 5; //5 rotations TODO test the top limit
 	static constexpr int clawReverseLimit = kEncoderUnit * 0; //TODO test bottom limit TODO if time then map elevator to claw so claw doesn't get smashed
-	static std::string gameData;
 
 	//Creating the TalonSRXs and sensors
 	Joystick *Joystick1, *Joystick2;
@@ -71,6 +70,8 @@ private:
 	const std::string kAutoNameDefault = "Default";
 	const std::string kAutoNameCustom = "No Auto";
 	std::string m_autoSelected;
+
+	std::string gameData;
 
 	unsigned int driveState;
 

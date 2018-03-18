@@ -131,8 +131,8 @@ void Robot::RobotInit() {
  * make sure to add them to the chooser code above as well.
  */
 void Robot::AutonomousInit() {
-	m_autoSelected = m_chooser.GetSelected();
-	//m_autoSelected = SmartDashboard::GetString("Auto Selector", kAutoNameDefault);
+	m_autoSelected = m_chooser.GetSelected();	//Java SmartDashboard
+	//m_autoSelected = SmartDashboard::GetString("Auto Selector", kAutoNameDefault); //LabVIEW Dashboard
 	std::cout << "Auto selected: " << m_autoSelected << std::endl;
 
 	gameData = frc::DriverStation::GetInstance().GetGameSpecificMessage();
@@ -189,18 +189,18 @@ void Robot::TeleopPeriodic() {
 	}
 	switch (driveState) {
 	case 0:
-		left = Joystick1->GetRawAxis(PS4::LeftStickDown) * -1;
-		right = Joystick1->GetRawAxis(PS4::RightStickDown) * -1;
+		left = Joystick1->GetRawAxis(PS4::PSLeftStickDown) * -1;
+		right = Joystick1->GetRawAxis(PS4::PSRightStickDown) * -1;
 		drive->TankDrive(left, right, /*Squared Inputs*/true);
 		break;
 	case 1:
-		left = Joystick1->GetRawAxis(PS4::RightStickDown) * -1;
-		right = Joystick1->GetRawAxis(PS4::LeftStickRight);
+		left = Joystick1->GetRawAxis(PS4::PSRightStickDown) * -1;
+		right = Joystick1->GetRawAxis(PS4::PSLeftStickRight);
 		drive->ArcadeDrive(left, right, /*Squared Inputs*/true);
 		break;
 	case 2:
-		left = Joystick1->GetRawAxis(PS4::RightStickDown) * -1;
-		right = Joystick1->GetRawAxis(PS4::LeftStickRight);
+		left = Joystick1->GetRawAxis(PS4::PSRightStickDown) * -1;
+		right = Joystick1->GetRawAxis(PS4::PSLeftStickRight);
 		drive->CurvatureDrive(left, right,/*quick turn*/Joystick1->GetRawButtonPressed(PS4::R3));
 	}
 	/*

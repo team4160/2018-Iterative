@@ -9,7 +9,7 @@
 
 enum PS4 {
 	Square = 1,
-	X = 2,
+	Cross = 2,
 	Circle = 3,
 	Triangle = 4,
 	L1 = 5,
@@ -22,12 +22,32 @@ enum PS4 {
 	R3 = 12,
 	PS = 13,
 	Pad = 14,
-	LeftStickRight = 0,
-	LeftStickDown = 1,
-	RightStickRight = 2,
-	RightStickDown = 5,
+	PSLeftStickRight = 0,
+	PSLeftStickDown = 1,
+	PSRightStickRight = 2,
+	PSRightStickDown = 5,
 	L2In = 3,
 	R2In = 4
+};
+
+enum XB1 { //TODO get XBox mapping
+	A = 1,
+	X = 3,
+	B = 3,
+	Y = 4,
+	LB = 5,
+	RB = 6,
+	View = 9,
+	Menu = 10,
+	LS = 11,
+	RS = 12,
+	XB = 13,
+	XBLeftStickRight = 0,
+	XBLeftStickDown = 1,
+	XBRightStickRight = 2,
+	XBRightStickDown = 5,
+	LIn = 3,
+	RIn = 4
 };
 
 enum Attack {
