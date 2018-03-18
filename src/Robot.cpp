@@ -61,7 +61,7 @@ void Robot::RobotInit() {
 	Elevator1 = new WPI_TalonSRX(8);
 	Elevator2 = new WPI_TalonSRX(9);
 	Elevator3 = new WPI_TalonSRX(10);
-	ElevatorSolenoid = new DoubleSolenoid(/*moduleNumber*/0, /*forwardChannel*/0,/*reverseChannel*/1);
+	ElevatorSolenoid = new DoubleSolenoid(/*PCM Number*/0, /*forward Channel*/0,/*reverse Channel*/1);
 
 	clawSenor = new CANifier(21);
 
@@ -98,8 +98,8 @@ void Robot::RobotInit() {
 			clawSenor->GetDeviceNumber(), 0);
 
 	//TODO Claw PID See 10.1 set P=1 I=10+ maybe don't override but use website
-	Claw->Config_kP(/*slot*/0, 1, kTimeoutMs);
-	Claw->Config_kI(/*slot*/0, 10, kTimeoutMs);
+	//Claw->Config_kP(/*slot*/0, 1, kTimeoutMs);
+	//Claw->Config_kI(/*slot*/0, 10, kTimeoutMs);
 
 	//TODO create encoder limits
 	/*Claw->ConfigForwardSoftLimitThreshold(clawForwardLimit, kTimeoutMs);
@@ -112,8 +112,8 @@ void Robot::RobotInit() {
 	Elevator1->ConfigRemoteFeedbackFilter(0x00, RemoteSensorSource::RemoteSensorSource_Off,/*REMOTE*/1, kTimeoutMs);
 	Elevator1->ConfigSelectedFeedbackSensor(FeedbackDevice::CTRE_MagEncoder_Absolute, 0, kTimeoutMs);
 	Elevator1->ConfigReverseLimitSwitchSource(LimitSwitchSource_FeedbackConnector, LimitSwitchNormal_NormallyOpen, 0);
-	Elevator1->Config_kP(/*slot*/0, 0.5, kTimeoutMs);
-	Elevator1->Config_kI(/*slot*/0, 0.2, kTimeoutMs);
+	//Elevator1->Config_kP(/*slot*/0, 0.5, kTimeoutMs);
+	//Elevator1->Config_kI(/*slot*/0, 0.2, kTimeoutMs);
 
 	drive = new DifferentialDrive(*DBLeft, *DBRight);
 	ElevatorSolenoid->Set(DoubleSolenoid::Value::kOff);
@@ -131,11 +131,11 @@ void Robot::RobotInit() {
  * make sure to add them to the chooser code above as well.
  */
 void Robot::AutonomousInit() {
-	gameData = frc::DriverStation::GetInstance().GetGameSpecificMessage();
-
 	m_autoSelected = m_chooser.GetSelected();
 	//m_autoSelected = SmartDashboard::GetString("Auto Selector", kAutoNameDefault);
 	std::cout << "Auto selected: " << m_autoSelected << std::endl;
+
+	gameData = frc::DriverStation::GetInstance().GetGameSpecificMessage();
 	/*
 	 if (gameData.length > 0) {
 	 if (gameData[0] == 'L') {
@@ -245,6 +245,7 @@ void Robot::DisabledInit() {
 }
 
 void Robot::DisabledPeriodic() {
+	gameData = frc::DriverStation::GetInstance().GetGameSpecificMessage();
 	gyro->Calibrate();	//keep on Calibrating gyro while disabled so it is always Calibrated when needed
 	Wait(1);
 }
