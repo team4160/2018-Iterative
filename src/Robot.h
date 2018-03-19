@@ -18,6 +18,7 @@ public:
 	static constexpr int kEncoderUnit = 4096;
 	static constexpr int kClawEncoderKnownHigh = 4096; //TODO find low position
 	static constexpr int kElevatorEncoderKnownLow = 0; //TODO find high position
+	static constexpr int kAutopausetime = 10;
 
 	//Setting up the TalonSRX's config
 	static constexpr double driveRampTime = 0.25;
@@ -50,6 +51,7 @@ public:
 	BuiltInAccelerometer *accel;
 	PowerDistributionPanel *PDP;
 	DifferentialDrive *drive;
+	Timer *time;
 
 	//Setting up some functions
 	void MotorBuilder(WPI_TalonSRX *srx, bool brake, bool inverted, double RampTime, int CurrentLimit, int MaxCurrent, int MaxTime);

@@ -23,17 +23,31 @@ void Robot::FindLimits() { //convert from while to if loops so it doesn't stop r
 	//find Claw up position
 	Claw->Set(ControlMode::PercentOutput, 0.04);
 	while (!ClawSenor->GetGeneralInput(ClawSenor->LIMF)) { //TODO not sure if switches are NormallyOpen
+		if (IsAutonomous()) {
+			if (time->Get >= kAutopausetime) {
+				goto clawEmergencyAutoBreak;
+			}
+		}
 		Wait(0.005);
 	}
 	Claw->SetSelectedSensorPosition(kClawEncoderKnownHigh,/*REMOTE*/0,/*TimeOut*/0);
+	clawEmergencyAutoBreak:
+
 	Claw->Set(ControlMode::Position, 0);	//move claw down
 
 	//find Elevator down position
 	Elevator1->Set(ControlMode::PercentOutput, -0.04);
 	while (!Elevator1->GetSensorCollection().IsRevLimitSwitchClosed()) {
+		if (IsAutonomous()) {
+			if (time->Get >= kAutopausetime) {
+				goto elevatorEmergencyAutoBreak;
+			}
+		}
 		Wait(0.005);
 	}
 	Elevator1->SetSelectedSensorPosition(kElevatorEncoderKnownLow,/*REMOTE*/0,/*TimeOut*/0);
+	elevatorEmergencyAutoBreak:
+
 	Elevator1->Set(ControlMode::Position, 0);	//move claw down
 }
 
@@ -50,6 +64,7 @@ void Robot::RobotInit() {
 	gyro = new ADXRS450_Gyro(SPI::kOnboardCS0);
 	PDP = new PowerDistributionPanel(0);
 	accel = new BuiltInAccelerometer();
+	time = new Timer();
 
 	DBLeft = new WPI_TalonSRX(1);
 	DBLeft2 = new WPI_TalonSRX(2);
@@ -131,6 +146,13 @@ void Robot::RobotInit() {
  * make sure to add them to the chooser code above as well.
  */
 void Robot::AutonomousInit() {
+	time->Reset(); //don't know if this is needed (maybe not)
+	time->Start();
+
+	//FindLimits(); TODO uncomment when limit switches are installed //TODO convert so it is in AutonomousPeriodic
+	while (time->Get >= kAutopausetime)
+		; //pause until kAutopausetime seconds has passed since timer started
+
 	m_autoSelected = m_chooser.GetSelected();	//Java SmartDashboard
 	//m_autoSelected = SmartDashboard::GetString("Auto Selector", kAutoNameDefault); //LabVIEW Dashboard
 	std::cout << "Auto selected: " << m_autoSelected << std::endl;
@@ -149,15 +171,13 @@ void Robot::AutonomousInit() {
 		// No Auto goes here
 	} else {
 		// Default Auto goes here
-		Wait(7);
+		// Wait(7); unneeded because of while loop above
 		DBLeft->Set(.5);
 		DBRight->Set(.5);
 		Wait(3.5);
 		DBLeft->Set(0);
 		DBRight->Set(0);
 	} //TODO figure out how to turn 90 degree in auto with time and encoder
-
-	//FindLimits(); TODO uncomment when limit switches are installed //TODO convert so it is in AutonomousPeriodic
 }
 
 void Robot::AutonomousPeriodic() {
