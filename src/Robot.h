@@ -35,8 +35,8 @@ public:
 	static constexpr int elevatorMaxCurrent = 39;
 	static constexpr int elevatorMaxTime = 500;
 
-	static constexpr int clawForwardLimit = kEncoderUnit * 5; //5 rotations TODO test the top limit
-	static constexpr int clawReverseLimit = kEncoderUnit * 0; //TODO test bottom limit TODO if time then map elevator to claw so claw doesn't get smashed
+	static constexpr int clawForwardLimit = kEncoderUnit * 5; //eg. 5 rotations TODO test the top soft limit
+	static constexpr int clawReverseLimit = kEncoderUnit * 0; //TODO test bottom soft limit
 
 	//Creating the TalonSRXs and sensors
 	Joystick *Joystick1, *Joystick2;
@@ -45,7 +45,7 @@ public:
 	WPI_TalonSRX *Claw, *ClawLeft, *ClawRight;
 	WPI_TalonSRX *Elevator1, *Elevator2, *Elevator3;
 	DoubleSolenoid *ElevatorSolenoid;
-	CANifier *clawSenor;
+	CANifier *ClawSenor;
 	ADXRS450_Gyro *gyro;
 	BuiltInAccelerometer *accel;
 	PowerDistributionPanel *PDP;

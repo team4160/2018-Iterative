@@ -22,7 +22,7 @@ void Robot::MotorBuilder(WPI_TalonSRX *srx, bool brake = true, bool inverted = f
 void Robot::FindLimits() { //convert from while to if loops so it doesn't stop robot
 	//find Claw up position
 	Claw->Set(ControlMode::PercentOutput, 0.04);
-	while (!clawSenor->GetGeneralInput(clawSenor->LIMF)) { //TODO not sure if switches are NormallyOpen
+	while (!ClawSenor->GetGeneralInput(ClawSenor->LIMF)) { //TODO not sure if switches are NormallyOpen
 		Wait(0.005);
 	}
 	Claw->SetSelectedSensorPosition(kClawEncoderKnownHigh,/*REMOTE*/0,/*TimeOut*/0);
@@ -63,7 +63,7 @@ void Robot::RobotInit() {
 	Elevator3 = new WPI_TalonSRX(10);
 	ElevatorSolenoid = new DoubleSolenoid(/*PCM Number*/0, /*forward Channel*/0,/*reverse Channel*/1);
 
-	clawSenor = new CANifier(21);
+	ClawSenor = new CANifier(21);
 
 	//follow
 	DBLeft2->Set(ControlMode::Follower, DBLeft->GetDeviceID());
@@ -84,18 +84,18 @@ void Robot::RobotInit() {
 	MotorBuilder(Elevator3, /*brake*/true,/*invert*/false, elevatorRampTime, elevatorCurrentLimit, elevatorMaxCurrent, elevatorMaxTime);
 
 	//Add CANifier encoder
-	clawSenor->ConfigVelocityMeasurementPeriod(CANifierVelocityMeasPeriod::Period_100Ms, kTimeoutMs);
-	clawSenor->ConfigVelocityMeasurementWindow(64, kTimeoutMs);
-	clawSenor->SetStatusFramePeriod(CANifierStatusFrame::CANifierStatusFrame_Status_2_General, /*refresh rate*/10, kTimeoutMs); /* speed up quadrature DIO */
+	ClawSenor->ConfigVelocityMeasurementPeriod(CANifierVelocityMeasPeriod::Period_100Ms, kTimeoutMs);
+	ClawSenor->ConfigVelocityMeasurementWindow(64, kTimeoutMs);
+	ClawSenor->SetStatusFramePeriod(CANifierStatusFrame::CANifierStatusFrame_Status_2_General, /*refresh rate*/10, kTimeoutMs); /* speed up quadrature DIO */
 
 	//attach CANifier to Claw motor
-	Claw->ConfigRemoteFeedbackFilter(clawSenor->GetDeviceNumber(), RemoteSensorSource::RemoteSensorSource_CANifier_Quadrature,/*REMOTE*/
+	Claw->ConfigRemoteFeedbackFilter(ClawSenor->GetDeviceNumber(), RemoteSensorSource::RemoteSensorSource_CANifier_Quadrature,/*REMOTE*/
 	0, kTimeoutMs);
 	Claw->ConfigRemoteFeedbackFilter(0x00, RemoteSensorSource::RemoteSensorSource_Off,/*REMOTE*/1, kTimeoutMs); //turn off second sensor for claw
 	Claw->ConfigSelectedFeedbackSensor(FeedbackDevice::RemoteSensor0,/*PID_PRIMARY*/0, kTimeoutMs);
 	//Claw->SetSensorPhase(true); //Sensor Invert? TODO
 	Claw->ConfigForwardLimitSwitchSource(RemoteLimitSwitchSource_RemoteCANifier, LimitSwitchNormal_NormallyOpen,
-			clawSenor->GetDeviceNumber(), 0);
+			ClawSenor->GetDeviceNumber(), 0);
 
 	//TODO Claw PID See 10.1 set P=1 I=10+ maybe don't override but use website
 	//Claw->Config_kP(/*slot*/0, 1, kTimeoutMs);
@@ -235,6 +235,8 @@ void Robot::TeleopPeriodic() {
 	frc::SmartDashboard::PutNumber("Claw", Claw->GetSelectedSensorPosition(0));
 	frc::SmartDashboard::PutNumber("Claw Pulse", Claw->GetSensorCollection().GetPulseWidthPosition());
 	frc::SmartDashboard::PutNumber("Claw Quad", Claw->GetSensorCollection().GetQuadraturePosition());
+	frc::SmartDashboard::PutNumber("Claw Forward Limit", ClawSenor->GetGeneralInput(ClawSenor->LIMF));
+	frc::SmartDashboard::PutNumber("Elevator Reverse Limit", Elevator1->GetSensorCollection().IsRevLimitSwitchClosed());
 
 	//just for testing
 	Claw->Set(ControlMode::PercentOutput, Joystick2->GetRawAxis(Attack::Up) * -1);
