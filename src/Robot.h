@@ -46,7 +46,7 @@ public:
 	WPI_TalonSRX *Claw, *ClawLeft, *ClawRight;
 	WPI_TalonSRX *Elevator1, *Elevator2, *Elevator3;
 	DoubleSolenoid *ElevatorSolenoid;
-	CANifier *ClawSenor;
+	CANifier *ClawSensor;
 	ADXRS450_Gyro *gyro;
 	BuiltInAccelerometer *accel;
 	PowerDistributionPanel *PDP;
@@ -56,6 +56,7 @@ public:
 	//Setting up some functions
 	void MotorBuilder(WPI_TalonSRX *srx, bool brake, bool inverted, double RampTime, int CurrentLimit, int MaxCurrent, int MaxTime);
 	void FindLimits();
+	void RGB(double R, double G, double B, CANifier *can);
 	void AutonomousInit() override;
 	void AutonomousPeriodic() override;
 	void DisabledInit() override;

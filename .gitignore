@@ -30,6 +30,8 @@
 *.exe
 *.out
 *.app
-/Debug/FRCUserProgram
+
 /Debug/
+/Debug/FRCUserProgram
+/.settings/
 /.settings/language.settings.xml
