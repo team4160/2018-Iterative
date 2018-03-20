@@ -24,7 +24,7 @@ void Robot::FindLimits() { //convert from while to if loops so it doesn't stop r
 	Claw->Set(ControlMode::PercentOutput, 0.04);
 	while (!ClawSensor->GetGeneralInput(ClawSensor->LIMF)) { //TODO not sure if switches are NormallyOpen
 		if (IsAutonomous()) {
-			if (time->Get() >= kAutopausetime) {
+			if (timer->Get() >= kAutopausetime) {
 				goto clawEmergencyAutoBreak;
 			}
 		}
@@ -39,7 +39,7 @@ void Robot::FindLimits() { //convert from while to if loops so it doesn't stop r
 	Elevator1->Set(ControlMode::PercentOutput, -0.04);
 	while (!Elevator1->GetSensorCollection().IsRevLimitSwitchClosed()) {
 		if (IsAutonomous()) {
-			if (time->Get() >= kAutopausetime) {
+			if (timer->Get() >= kAutopausetime) {
 				goto elevatorEmergencyAutoBreak;
 			}
 		}
@@ -51,10 +51,10 @@ void Robot::FindLimits() { //convert from while to if loops so it doesn't stop r
 	Elevator1->Set(ControlMode::Position, 0);	//move claw down
 }
 
-void Robot::RGB(double R, double G, double B, CANifier *can){//It is GRB
-	can->SetLEDOutput(/*percent*/G,CANifier::LEDChannelA);
-	can->SetLEDOutput(/*percent*/R,CANifier::LEDChannelB);
-	can->SetLEDOutput(/*percent*/B,CANifier::LEDChannelC);
+void Robot::RGB(double R, double G, double B, CANifier *can) {	//It is GRB
+	can->SetLEDOutput(/*percent*/G, CANifier::LEDChannelA);
+	can->SetLEDOutput(/*percent*/R, CANifier::LEDChannelB);
+	can->SetLEDOutput(/*percent*/B, CANifier::LEDChannelC);
 }
 
 void Robot::RobotInit() {
@@ -152,23 +152,25 @@ void Robot::RobotInit() {
  * make sure to add them to the chooser code above as well.
  */
 void Robot::AutonomousInit() {
-	time->Reset(); //don't know if this is needed (maybe not)
-	time->Start();
+	timer->Reset(); //If we start auto a second time
+	timer->Start();
 
 	//FindLimits(); TODO uncomment when limit switches are installed //TODO convert so it is in AutonomousPeriodic
-	while (time->Get() >= kAutopausetime)
+	while (timer->Get() >= kAutopausetime)
 		; //pause until kAutopausetime seconds has passed since timer started
 
 	m_autoSelected = m_chooser.GetSelected();	//Java SmartDashboard
 	//m_autoSelected = SmartDashboard::GetString("Auto Selector", kAutoNameDefault); //LabVIEW Dashboard
 	std::cout << "Auto selected: " << m_autoSelected << std::endl;
 
+	if (frc::DriverStation::GetInstance().GetAlliance() == DriverStation::kRed)
+		RGB(50, 0, 0, ClawSensor);
+	else if (frc::DriverStation::GetInstance().GetAlliance() == DriverStation::kBlue)
+		RGB(0, 0, 50, ClawSensor);
+	else
+		RGB(0, 50, 0, ClawSensor);
+
 	gameData = frc::DriverStation::GetInstance().GetGameSpecificMessage();
-	if(frc::DriverStation::GetInstance().GetAlliance()==DriverStation::kRed){
-		RGB(0,0,0,ClawSensor);
-	}else if(frc::DriverStation::GetInstance().GetAlliance()==DriverStation::kBlue){
-		RGB(0,50,0,ClawSensor);
-	}
 	/*
 	 if (gameData.length > 0) {
 	 if (gameData[0] == 'L') {
@@ -275,7 +277,9 @@ void Robot::TeleopPeriodic() {
 }
 
 void Robot::DisabledInit() {
-	RGB(25,25,25,ClawSensor);
+	RGB(25, 25, 25, ClawSensor);
+	timer->Stop();
+	timer->Reset();
 }
 
 void Robot::DisabledPeriodic() {
