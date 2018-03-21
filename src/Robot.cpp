@@ -28,6 +28,7 @@ void Robot::FindLimits() { //convert from while to if loops so it doesn't stop r
 				goto clawEmergencyAutoBreak;
 			}
 		}
+		//TODO break out if too much time has passed e.g. limit switches do not work
 		Wait(0.005);
 	}
 	Claw->SetSelectedSensorPosition(kClawEncoderKnownHigh,/*REMOTE*/0,/*TimeOut*/0);
@@ -93,8 +94,8 @@ void Robot::RobotInit() {
 	Elevator3->Set(ControlMode::Follower, Elevator1->GetDeviceID());
 
 	//Motor Builder(&Motor,brake,invert,Ramp,limit,maxlimit,maxtime)
-	MotorBuilder(DBLeft, /*brake*/true,/*invert*/true, driveRampTime, driveCurrentLimit, driveMaxCurrent, driveMaxTime);
-	MotorBuilder(DBLeft2, /*brake*/true,/*invert*/true, driveRampTime, driveCurrentLimit, driveMaxCurrent, driveMaxTime);
+	MotorBuilder(DBLeft, /*brake*/true,/*invert*/false, driveRampTime, driveCurrentLimit, driveMaxCurrent, driveMaxTime);
+	MotorBuilder(DBLeft2, /*brake*/true,/*invert*/false, driveRampTime, driveCurrentLimit, driveMaxCurrent, driveMaxTime); //DriveBase already negates right side
 	MotorBuilder(DBRight, /*brake*/true,/*invert*/false, driveRampTime, driveCurrentLimit, driveMaxCurrent, driveMaxTime);
 	MotorBuilder(DBRight2, /*brake*/true,/*invert*/false, driveRampTime, driveCurrentLimit, driveMaxCurrent, driveMaxTime);
 	MotorBuilder(Claw, /*brake*/true,/*invert*/false, clawRampTime, clawCurrentLimit, clawMaxCurrent, clawMaxTime);
@@ -137,6 +138,7 @@ void Robot::RobotInit() {
 	//Elevator1->Config_kI(/*slot*/0, 0.2, kTimeoutMs);
 
 	drive = new DifferentialDrive(*DBLeft, *DBRight);
+	drive->SetDeadband(0.03);
 	ElevatorSolenoid->Set(DoubleSolenoid::Value::kOff);
 }
 
@@ -155,14 +157,7 @@ void Robot::AutonomousInit() {
 	timer->Reset(); //If we start auto a second time
 	timer->Start();
 
-	//FindLimits(); TODO uncomment when limit switches are installed //TODO convert so it is in AutonomousPeriodic
-	while (timer->Get() >= kAutopausetime)
-		; //pause until kAutopausetime seconds has passed since timer started
-
-	m_autoSelected = m_chooser.GetSelected();	//Java SmartDashboard
-	//m_autoSelected = SmartDashboard::GetString("Auto Selector", kAutoNameDefault); //LabVIEW Dashboard
-	std::cout << "Auto selected: " << m_autoSelected << std::endl;
-
+	gameData = frc::DriverStation::GetInstance().GetGameSpecificMessage();
 	if (frc::DriverStation::GetInstance().GetAlliance() == DriverStation::kRed)
 		RGB(50, 0, 0, ClawSensor);
 	else if (frc::DriverStation::GetInstance().GetAlliance() == DriverStation::kBlue)
@@ -170,7 +165,14 @@ void Robot::AutonomousInit() {
 	else
 		RGB(0, 50, 0, ClawSensor);
 
-	gameData = frc::DriverStation::GetInstance().GetGameSpecificMessage();
+	//FindLimits(); TODO uncomment when limit switches are installed //TODO convert so it is in AutonomousPeriodic
+
+	while (timer->Get() >= kAutopausetime)
+		; //pause until kAutopausetime seconds has passed since timer started
+
+	m_autoSelected = m_chooser.GetSelected();	//Java SmartDashboard
+	//m_autoSelected = SmartDashboard::GetString("Auto Selector", kAutoNameDefault); //LabVIEW Dashboard
+	std::cout << "Auto selected: " << m_autoSelected << std::endl;
 	/*
 	 if (gameData.length > 0) {
 	 if (gameData[0] == 'L') {
@@ -181,15 +183,13 @@ void Robot::AutonomousInit() {
 	 }
 	 */
 	if (m_autoSelected == kAutoNameCustom) {
-		// No Auto goes here
+		// No Auto
 	} else {
-		// Default Auto goes here
+		// Default Auto
 		// Wait(7); unneeded because of while loop above
-		DBLeft->Set(.5);
-		DBRight->Set(.5);
+		drive->TankDrive(0.5, 0.5, false);
 		Wait(3.5);
-		DBLeft->Set(0);
-		DBRight->Set(0);
+		drive->TankDrive(0, 0, false);
 	} //TODO figure out how to turn 90 degree in auto with time and encoder
 }
 
@@ -203,7 +203,6 @@ void Robot::AutonomousPeriodic() {
 
 void Robot::TeleopInit() {
 	gameData = frc::DriverStation::GetInstance().GetGameSpecificMessage();
-
 }
 
 void Robot::TeleopPeriodic() {
@@ -248,6 +247,7 @@ void Robot::TeleopPeriodic() {
 	 Claw->Set(ControlMode::Position, up);
 	 }
 	 */
+
 	//Claw intakes
 	if (Joystick2->GetRawButton(6)) {
 		ClawLeft->Set(1);
