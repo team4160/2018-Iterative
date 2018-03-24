@@ -80,4 +80,6 @@ private:
 
 	double left;
 	double right;
+
+	bool isHomed = false;
 };

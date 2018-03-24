@@ -5,6 +5,14 @@
 /* the project.                                                               */
 /*----------------------------------------------------------------------------*/
 
+/* Rules
+ * 1: If you require sensors then have a method to timeout if sensor has failed
+ * 2: Avoid while loops (stops the robot from processing anything else and motors will continue spinning)
+ * 3: Do not feature creep
+ * 4: Test your changes when possible
+ * 5: If using the same code over and over then make a function
+ */
+
 #include "Robot.h"
 
 void Robot::MotorBuilder(WPI_TalonSRX *srx, bool brake = true, bool inverted = false, double RampTime = 0, int CurrentLimit = 20,
@@ -20,34 +28,38 @@ void Robot::MotorBuilder(WPI_TalonSRX *srx, bool brake = true, bool inverted = f
 }
 
 void Robot::FindLimits() { //convert from while to if loops so it doesn't stop robot
-	//find Claw up position
+//find Claw up position
 	Timer temptimer;
 	temptimer.Start();
+	isHomed = true;
 	Claw->Set(ControlMode::PercentOutput, 0.04);	//move up by 4%
 	while (!ClawSensor->GetGeneralInput(ClawSensor->LIMF)) { //TODO not sure if switches are NormallyOpen
 		if (IsAutonomous()) {
 			if (mytimer->Get() >= kAutopausetime) {
+				isHomed = false;
 				goto clawEmergencyBreak;
 			}
 		}
 		if (temptimer.Get() > 5/*seconds*/) { //TODO find good timeout time
+			isHomed = false;
 			goto clawEmergencyBreak;
 		}
 		Wait(0.005);
 	}
 	Claw->SetSelectedSensorPosition(kClawEncoderKnownHigh, /*REMOTE*/0, /*TimeOut*/0);
-	Claw->Set(ControlMode::Position, 0);	//move claw down
 	clawEmergencyBreak:	//if broken out then don't set or move (will need to move manually)
 
-	//find Elevator down position
+//find Elevator down position
 	Elevator1->Set(ControlMode::PercentOutput, -0.04);	//move down by 4%
 	while (!Elevator1->GetSensorCollection().IsRevLimitSwitchClosed()) {
 		if (IsAutonomous()) {
 			if (mytimer->Get() >= kAutopausetime) {
+				isHomed = false;
 				goto elevatorEmergencyBreak;
 			}
 		}
 		if (temptimer.Get() > 5/*seconds*/) {	//TODO find good timeout time
+			isHomed = false;
 			goto elevatorEmergencyBreak;
 		}
 		Wait(0.005);
@@ -120,15 +132,15 @@ void Robot::RobotInit() {
 	0, kTimeoutMs);
 	Claw->ConfigRemoteFeedbackFilter(0x00, RemoteSensorSource::RemoteSensorSource_Off, /*REMOTE*/1, kTimeoutMs); //turn off second sensor for claw
 	Claw->ConfigSelectedFeedbackSensor(FeedbackDevice::RemoteSensor0, /*PID_PRIMARY*/0, kTimeoutMs);
-//Claw->SetSensorPhase(true); //Sensor Invert? TODO
+//Claw->SetSensorPhase(true); //TODO Sensor Invert?
 	Claw->ConfigForwardLimitSwitchSource(RemoteLimitSwitchSource_RemoteCANifier, LimitSwitchNormal_NormallyOpen,
 			ClawSensor->GetDeviceNumber(), 0);
 
-//TODO Claw PID See 10.1 set P=1 I=10+ maybe don't override but use website
+//TODO Claw PID See 10.1 set P=1 I=10+ maybe don't override but use website for now
 //Claw->Config_kP(/*slot*/0, 1, kTimeoutMs);
 //Claw->Config_kI(/*slot*/0, 10, kTimeoutMs);
 
-//TODO create encoder limits
+//TODO create soft encoder limits when you found positions
 	/*Claw->ConfigForwardSoftLimitThreshold(clawForwardLimit, kTimeoutMs);
 	 Claw->ConfigForwardSoftLimitEnable(true, kTimeoutMs);
 	 Claw->ConfigReverseSoftLimitThreshold(clawReverseLimit, kTimeoutMs);
@@ -195,7 +207,7 @@ void Robot::AutonomousInit() {
 		drive->TankDrive(0.5, 0.5, false);
 		Wait(3.5);
 		drive->TankDrive(0, 0, false);
-	} //TODO figure out how to turn 90 degree in auto with time and (encoder or gyro)
+	} //TODO figure out how to turn 90 degree in auto with time(timeout) and (encoder or gyro)
 }
 
 void Robot::AutonomousPeriodic() {
@@ -208,6 +220,11 @@ void Robot::AutonomousPeriodic() {
 
 void Robot::TeleopInit() {
 	gameData = frc::DriverStation::GetInstance().GetGameSpecificMessage();
+
+	if (isHomed) {
+		Claw->Set(ControlMode::Position, 0);	//move claw down if homed
+		Elevator1->Set(ControlMode::Position, 0);	//move claw down if homed
+	}
 }
 
 void Robot::TeleopPeriodic() {
@@ -276,7 +293,7 @@ void Robot::TeleopPeriodic() {
 	frc::SmartDashboard::PutNumber("Claw Forward Limit", ClawSensor->GetGeneralInput(ClawSensor->LIMF));
 	frc::SmartDashboard::PutNumber("Elevator Reverse Limit", Elevator1->GetSensorCollection().IsRevLimitSwitchClosed());
 
-//just for testing
+//just for testing TODO delete after testing and some code above
 	Claw->Set(ControlMode::PercentOutput, Joystick2->GetRawAxis(Attack::Up) * -1);
 	Elevator1->Set(ControlMode::PercentOutput, Joystick2->GetRawAxis(Attack::Throttle));
 	if (Joystick1->GetRawButtonPressed(PS4::Pad)) {
