@@ -51,7 +51,7 @@ public:
 	BuiltInAccelerometer *accel;
 	PowerDistributionPanel *PDP;
 	DifferentialDrive *drive;
-	Timer *timer;
+	Timer *mytimer;
 
 	//Setting up some functions
 	void MotorBuilder(WPI_TalonSRX *srx, bool brake, bool inverted, double RampTime, int CurrentLimit, int MaxCurrent, int MaxTime);
