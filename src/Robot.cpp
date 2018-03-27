@@ -224,6 +224,11 @@ void Robot::TeleopInit() {
 	if (isHomed) {
 		Claw->Set(ControlMode::Position, 0);	//move claw down if homed
 		Elevator1->Set(ControlMode::Position, 0);	//move claw down if homed
+	} else {
+		Claw->SetSelectedSensorPosition(kClawEncoderKnownHigh, /*REMOTE*/0, /*TimeOut*/0);
+		Claw->Set(ControlMode::Position, 0);
+		Elevator1->Set(ControlMode::Position, 0);
+		Elevator1->SetSelectedSensorPosition(kElevatorEncoderKnownLow, /*REMOTE*/0, /*TimeOut*/0);
 	}
 }
 
@@ -282,6 +287,9 @@ void Robot::TeleopPeriodic() {
 		ClawRight->Set(0);
 	}
 
+//elevator
+	//TODO
+
 	frc::SmartDashboard::PutNumber("Gyroscope", gyro->GetAngle());
 	frc::SmartDashboard::PutNumber("POV", Joystick1->GetPOV());
 	frc::SmartDashboard::PutNumber("Elevator", Elevator1->GetSelectedSensorPosition(0));
@@ -293,9 +301,9 @@ void Robot::TeleopPeriodic() {
 	frc::SmartDashboard::PutNumber("Claw Forward Limit", ClawSensor->GetGeneralInput(ClawSensor->LIMF));
 	frc::SmartDashboard::PutNumber("Elevator Reverse Limit", Elevator1->GetSensorCollection().IsRevLimitSwitchClosed());
 
-//just for testing TODO delete after testing and some code above
-	Claw->Set(ControlMode::PercentOutput, Joystick2->GetRawAxis(Attack::Up) * -1);
-	Elevator1->Set(ControlMode::PercentOutput, Joystick2->GetRawAxis(Attack::Throttle));
+//just for testing TODO delete after testing and Dashboard code above
+	Claw->Set(ControlMode::PercentOutput, Joystick2->GetRawAxis(Attack::Down) * -1);
+	Elevator1->Set(ControlMode::PercentOutput, Joystick2->GetRawAxis(Attack::ReverseThrottle) * -1);
 	if (Joystick1->GetRawButtonPressed(PS4::Pad)) {
 		FindLimits();
 	}

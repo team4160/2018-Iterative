@@ -51,7 +51,7 @@ enum XB1 { //TODO get XBox mapping
 };
 
 enum Attack {
-	Up = 1, //TODO find axis numbers
-	Right = 2,
-	Throttle = 4
+	Right = 0,
+	Down = 1,
+	ReverseThrottle = 2
 };
