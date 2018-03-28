@@ -26,8 +26,8 @@ enum PS4 {
 	PSLeftStickDown = 1,
 	PSRightStickRight = 2,
 	PSRightStickDown = 5,
-	L2In = 3,
-	R2In = 4
+	L2In = 3, //start at -1 and goes to 1      (L2In+1)/2 0 to 100%
+	R2In = 4  //""  ""
 };
 
 enum XB1 { //TODO get XBox mapping
@@ -51,7 +51,5 @@ enum XB1 { //TODO get XBox mapping
 };
 
 enum Attack {
-	Right = 0,
-	Down = 1,
-	ReverseThrottle = 2
+	Right = 0, Down = 1, ReverseThrottle = 2
 };

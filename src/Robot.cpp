@@ -69,7 +69,7 @@ void Robot::FindLimits() { //convert from while to if loops so it doesn't stop r
 	elevatorEmergencyBreak: ;
 }
 
-void Robot::RGB(double R, double G, double B, CANifier *can) {	//It is GRB
+void Robot::RGB(double R, double G, double B, CANifier *can) {	//Normally It is GRB
 	can->SetLEDOutput(/*percent*/G, CANifier::LEDChannelA);
 	can->SetLEDOutput(/*percent*/R, CANifier::LEDChannelB);
 	can->SetLEDOutput(/*percent*/B, CANifier::LEDChannelC);
