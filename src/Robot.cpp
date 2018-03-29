@@ -40,7 +40,7 @@ void Robot::FindLimits() { //convert from while to if loops so it doesn't stop r
 				goto clawEmergencyBreak;
 			}
 		}
-		if (temptimer.Get() > 5/*seconds*/) { //TODO find good timeout time
+		if (temptimer.Get() > 4/*seconds*/) { //TODO find good timeout time
 			isHomed = false;
 			goto clawEmergencyBreak;
 		}
@@ -48,6 +48,7 @@ void Robot::FindLimits() { //convert from while to if loops so it doesn't stop r
 	}
 	Claw->SetSelectedSensorPosition(kClawEncoderKnownHigh, /*REMOTE*/0, /*TimeOut*/0);
 	clawEmergencyBreak:	//if broken out then don't set or move (will need to move manually)
+	temptimer.Reset();
 
 //find Elevator down position
 	Elevator1->Set(ControlMode::PercentOutput, -0.04);	//move down by 4%
@@ -58,7 +59,7 @@ void Robot::FindLimits() { //convert from while to if loops so it doesn't stop r
 				goto elevatorEmergencyBreak;
 			}
 		}
-		if (temptimer.Get() > 5/*seconds*/) {	//TODO find good timeout time
+		if (temptimer.Get() > 4/*seconds*/) {	//TODO find good timeout time
 			isHomed = false;
 			goto elevatorEmergencyBreak;
 		}
@@ -66,7 +67,8 @@ void Robot::FindLimits() { //convert from while to if loops so it doesn't stop r
 	}
 	Elevator1->SetSelectedSensorPosition(kElevatorEncoderKnownLow, /*REMOTE*/0, /*TimeOut*/0);
 	Elevator1->Set(ControlMode::Position, 0);	//move claw down
-	elevatorEmergencyBreak: ;
+	elevatorEmergencyBreak: //if broken out then don't set or move (will need to move manually)
+	~temptimer; //delete temptimer
 }
 
 void Robot::RGB(double R, double G, double B, CANifier *can) {	//Normally It is GRB
@@ -133,8 +135,7 @@ void Robot::RobotInit() {
 	Claw->ConfigRemoteFeedbackFilter(0x00, RemoteSensorSource::RemoteSensorSource_Off, /*REMOTE*/1, kTimeoutMs); //turn off second sensor for claw
 	Claw->ConfigSelectedFeedbackSensor(FeedbackDevice::RemoteSensor0, /*PID_PRIMARY*/0, kTimeoutMs);
 //Claw->SetSensorPhase(true); //TODO Sensor Invert?
-	Claw->ConfigForwardLimitSwitchSource(RemoteLimitSwitchSource_RemoteCANifier, LimitSwitchNormal_NormallyOpen,
-			ClawSensor->GetDeviceNumber(), 0);
+	Claw->ConfigForwardLimitSwitchSource(RemoteLimitSwitchSource_RemoteCANifier, LimitSwitchNormal_NormallyOpen, ClawSensor->GetDeviceNumber(), 0);
 
 //TODO Claw PID See 10.1 set P=1 I=10+ maybe don't override but use website for now
 //Claw->Config_kP(/*slot*/0, 1, kTimeoutMs);
