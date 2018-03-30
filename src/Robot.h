@@ -14,11 +14,12 @@
 
 class Robot : public frc::IterativeRobot {
 public:
-	static constexpr int kTimeoutMs = 10; //change this to 0 if you don't want verification
+	static constexpr int kTimeoutMs = 0; //change this to 0 if you don't want verification
 	static constexpr int kEncoderUnit = 4096;
 	static constexpr int kClawEncoderKnownHigh = 4096; //TODO find low position
 	static constexpr int kElevatorEncoderKnownLow = 0; //TODO find high position
 	static constexpr int kAutopausetime = 10;
+	static constexpr float turnSensitivity = 0.6;
 
 	//Setting up the TalonSRX's config
 	static constexpr double driveRampTime = 0.25;
@@ -50,7 +51,6 @@ public:
 	ADXRS450_Gyro *gyro;
 	BuiltInAccelerometer *accel;
 	PowerDistributionPanel *PDP;
-	DifferentialDrive *drive;
 	Timer *mytimer;
 
 	//Setting up some functions
@@ -80,6 +80,7 @@ private:
 
 	double left;
 	double right;
+	double turn;
 
 	bool isHomed = false;
 };
