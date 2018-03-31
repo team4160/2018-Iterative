@@ -15,8 +15,7 @@
 
 #include "Robot.h"
 
-void Robot::MotorBuilder(WPI_TalonSRX *srx, bool brake = true, bool inverted = false, double RampTime = 0, int CurrentLimit = 20,
-		int MaxCurrent = 20, int MaxTime = 100) {
+void Robot::MotorBuilder(WPI_TalonSRX *srx, bool brake = true, bool inverted = false, double RampTime = 0, int CurrentLimit = 20, int MaxCurrent = 20, int MaxTime = 100) {
 	srx->SetInverted(inverted);
 	srx->ConfigOpenloopRamp(RampTime, kTimeoutMs);
 	srx->ConfigContinuousCurrentLimit(CurrentLimit, kTimeoutMs);
@@ -117,45 +116,45 @@ void Robot::RobotInit() {
 	MotorBuilder(DBLeft2, /*brake*/true, /*invert*/false, driveRampTime, driveCurrentLimit, driveMaxCurrent, driveMaxTime);
 	MotorBuilder(DBRight, /*brake*/true, /*invert*/true, driveRampTime, driveCurrentLimit, driveMaxCurrent, driveMaxTime);
 	MotorBuilder(DBRight2, /*brake*/true, /*invert*/true, driveRampTime, driveCurrentLimit, driveMaxCurrent, driveMaxTime);
-//	MotorBuilder(Claw, /*brake*/true, /*invert*/false, clawRampTime, clawCurrentLimit, clawMaxCurrent, clawMaxTime);
-//	MotorBuilder(ClawLeft, /*brake*/true, /*invert*/false, clawRampTime, clawCurrentLimit, clawMaxCurrent, clawMaxTime);
-//	MotorBuilder(ClawRight, /*brake*/true, /*invert*/true, clawRampTime, clawCurrentLimit, clawMaxCurrent, clawMaxTime);
-//	MotorBuilder(Elevator1, /*brake*/true, /*invert*/false, elevatorRampTime, elevatorCurrentLimit, elevatorMaxCurrent, elevatorMaxTime);
-//	MotorBuilder(Elevator2, /*brake*/true, /*invert*/false, elevatorRampTime, elevatorCurrentLimit, elevatorMaxCurrent, elevatorMaxTime);
-//	MotorBuilder(Elevator3, /*brake*/true, /*invert*/false, elevatorRampTime, elevatorCurrentLimit, elevatorMaxCurrent, elevatorMaxTime);
+	MotorBuilder(Claw, /*brake*/true, /*invert*/false, clawRampTime, clawCurrentLimit, clawMaxCurrent, clawMaxTime);
+	MotorBuilder(ClawLeft, /*brake*/true, /*invert*/false, clawRampTime, clawCurrentLimit, clawMaxCurrent, clawMaxTime);
+	MotorBuilder(ClawRight, /*brake*/true, /*invert*/true, clawRampTime, clawCurrentLimit, clawMaxCurrent, clawMaxTime);
+	MotorBuilder(Elevator1, /*brake*/true, /*invert*/false, elevatorRampTime, elevatorCurrentLimit, elevatorMaxCurrent, elevatorMaxTime);
+	MotorBuilder(Elevator2, /*brake*/true, /*invert*/false, elevatorRampTime, elevatorCurrentLimit, elevatorMaxCurrent, elevatorMaxTime);
+	MotorBuilder(Elevator3, /*brake*/true, /*invert*/false, elevatorRampTime, elevatorCurrentLimit, elevatorMaxCurrent, elevatorMaxTime);
 
 //Add CANifier encoder
-//	ClawSensor->ConfigVelocityMeasurementPeriod(CANifierVelocityMeasPeriod::Period_100Ms, kTimeoutMs);
-//	ClawSensor->ConfigVelocityMeasurementWindow(64, kTimeoutMs);
-//	ClawSensor->SetStatusFramePeriod(CANifierStatusFrame::CANifierStatusFrame_Status_2_General, /*refresh rate*/10, kTimeoutMs); /* speed up quadrature DIO */
+	ClawSensor->ConfigVelocityMeasurementPeriod(CANifierVelocityMeasPeriod::Period_100Ms, kTimeoutMs);
+	ClawSensor->ConfigVelocityMeasurementWindow(64, kTimeoutMs);
+	ClawSensor->SetStatusFramePeriod(CANifierStatusFrame::CANifierStatusFrame_Status_2_General, /*refresh rate*/10, kTimeoutMs); /* speed up quadrature DIO */
 
 //attach CANifier to Claw motor
-//	Claw->ConfigRemoteFeedbackFilter(ClawSensor->GetDeviceNumber(), RemoteSensorSource::RemoteSensorSource_CANifier_Quadrature, /*REMOTE*/
-//	0, kTimeoutMs);
-//	Claw->ConfigRemoteFeedbackFilter(0x00, RemoteSensorSource::RemoteSensorSource_Off, /*REMOTE*/1, kTimeoutMs); //turn off second sensor for claw
-//	Claw->ConfigSelectedFeedbackSensor(FeedbackDevice::RemoteSensor0, /*PID_PRIMARY*/0, kTimeoutMs);
+	Claw->ConfigRemoteFeedbackFilter(ClawSensor->GetDeviceNumber(), RemoteSensorSource::RemoteSensorSource_CANifier_Quadrature, /*REMOTE*/
+	0, kTimeoutMs);
+	Claw->ConfigRemoteFeedbackFilter(0x00, RemoteSensorSource::RemoteSensorSource_Off, /*REMOTE*/1, kTimeoutMs); //turn off second sensor for claw
+	Claw->ConfigSelectedFeedbackSensor(FeedbackDevice::RemoteSensor0, /*PID_PRIMARY*/0, kTimeoutMs);
 //Claw->SetSensorPhase(true); //TODO Sensor Invert?
-//	Claw->ConfigForwardLimitSwitchSource(RemoteLimitSwitchSource_RemoteCANifier, LimitSwitchNormal_NormallyOpen, ClawSensor->GetDeviceNumber(), 0);
+	Claw->ConfigForwardLimitSwitchSource(RemoteLimitSwitchSource_RemoteCANifier, LimitSwitchNormal_NormallyOpen, ClawSensor->GetDeviceNumber(), 0);
 
 //TODO Claw PID See 10.1 set P=1 I=10+ maybe don't override but use website for now
 //Claw->Config_kP(/*slot*/0, 1, kTimeoutMs);
 //Claw->Config_kI(/*slot*/0, 10, kTimeoutMs);
 
 //TODO create soft encoder limits when you found positions
-	/*Claw->ConfigForwardSoftLimitThreshold(clawForwardLimit, kTimeoutMs);
-	 Claw->ConfigForwardSoftLimitEnable(true, kTimeoutMs);
-	 Claw->ConfigReverseSoftLimitThreshold(clawReverseLimit, kTimeoutMs);
-	 Claw->ConfigReverseSoftLimitEnable(true, kTimeoutMs);*/
+	Claw->ConfigForwardSoftLimitThreshold(clawForwardLimit, kTimeoutMs);
+	Claw->ConfigForwardSoftLimitEnable(true, kTimeoutMs);
+	Claw->ConfigReverseSoftLimitThreshold(clawReverseLimit, kTimeoutMs);
+	Claw->ConfigReverseSoftLimitEnable(true, kTimeoutMs);
 
 //elevator sensors
-//	Elevator1->ConfigRemoteFeedbackFilter(0x00, RemoteSensorSource::RemoteSensorSource_Off,/*REMOTE*/0, kTimeoutMs);
-//	Elevator1->ConfigRemoteFeedbackFilter(0x00, RemoteSensorSource::RemoteSensorSource_Off,/*REMOTE*/1, kTimeoutMs);
-//	Elevator1->ConfigSelectedFeedbackSensor(FeedbackDevice::CTRE_MagEncoder_Absolute, 0, kTimeoutMs);
-//	Elevator1->ConfigReverseLimitSwitchSource(LimitSwitchSource_FeedbackConnector, LimitSwitchNormal_NormallyOpen, 0);
+	Elevator1->ConfigRemoteFeedbackFilter(0x00, RemoteSensorSource::RemoteSensorSource_Off,/*REMOTE*/0, kTimeoutMs);
+	Elevator1->ConfigRemoteFeedbackFilter(0x00, RemoteSensorSource::RemoteSensorSource_Off,/*REMOTE*/1, kTimeoutMs);
+	Elevator1->ConfigSelectedFeedbackSensor(FeedbackDevice::CTRE_MagEncoder_Absolute, 0, kTimeoutMs);
+	Elevator1->ConfigReverseLimitSwitchSource(LimitSwitchSource_FeedbackConnector, LimitSwitchNormal_NormallyOpen, 0);
 //Elevator1->Config_kP(/*slot*/0, 0.5, kTimeoutMs);
 //Elevator1->Config_kI(/*slot*/0, 0.2, kTimeoutMs);
 
-//	ElevatorSolenoid->Set(DoubleSolenoid::Value::kOff);
+	ElevatorSolenoid->Set(DoubleSolenoid::Value::kOff);
 }
 
 /**
@@ -170,21 +169,23 @@ void Robot::RobotInit() {
  * make sure to add them to the chooser code above as well.
  */
 void Robot::AutonomousInit() {
-//	mytimer->Reset(); //If we start auto a second time
-//	mytimer->Start();
+	mytimer->Start();
+	gyro->Calibrate();//takes around 5 seconds to execute
 
-/*	gameData = frc::DriverStation::GetInstance().GetGameSpecificMessage();
+	gameData = frc::DriverStation::GetInstance().GetGameSpecificMessage();
 	if (frc::DriverStation::GetInstance().GetAlliance() == DriverStation::kRed)
 		RGB(50, 0, 0, ClawSensor);
 	else if (frc::DriverStation::GetInstance().GetAlliance() == DriverStation::kBlue)
 		RGB(0, 0, 50, ClawSensor);
 	else
 		RGB(0, 50, 0, ClawSensor);
-*/
+
 //FindLimits(); TODO uncomment when limit switches are installed //TODO convert so it is in AutonomousPeriodic
 
-//	while (mytimer->Get() >= kAutopausetime)
-//		; //pause until kAutopausetime seconds has passed since time
+	frc::SmartDashboard::PutNumber("Auto Timer", mytimer->Get());
+	while (mytimer->Get() <= kAutopausetime)
+		frc::SmartDashboard::PutNumber("Auto Timer", mytimer->Get());
+		//; //pause until kAutopausetime seconds has passed since time
 
 //	m_autoSelected = m_chooser.GetSelected();	//Java SmartDashboard
 //m_autoSelected = SmartDashboard::GetString("Auto Selector", kAutoNameDefault); //LabVIEW Dashboard
@@ -202,9 +203,9 @@ void Robot::AutonomousInit() {
 		// No Auto
 	} else {
 		// Default Auto
-		Wait(7);// unneeded because of while loop above
+		//Wait(7);// unneeded because of while loop above
 		DBLeft->Set(0.5);
-		DBRight->Set(-0.5);
+		DBRight->Set(0.5);
 		Wait(3.5);
 		DBLeft->Set(0);
 		DBRight->Set(0);
@@ -242,21 +243,24 @@ void Robot::TeleopPeriodic() {
 			break;
 		case 1:
 			std::cout << "Arcade Drive" << std::endl;
+		}
 	}
 	switch (driveState) {
-	case 0://Tank
-		left = Joystick1->GetRawAxis(PS4::PSLeftStickDown) * -1;
-		right = Joystick1->GetRawAxis(PS4::PSRightStickDown) * -1;
-		drive->TankDrive(left, right, */Squared Inputs*/true);
+	case 0:	//Tank
+		left = Joystick1->GetRawAxis(PS4::PSLeftStickDown);
+		right = Joystick1->GetRawAxis(PS4::PSRightStickDown);
+		DBLeft->Set(left);
+		DBRight->Set(right);
 		break;
-	case 1://Warthog
+	case 1:	//Arcade
 		left = (Joystick1->GetRawAxis(0));
-		right = (Joystick1->GetRawAxis(5));
+		driveSpeed = (Joystick1->GetRawAxis(5));
 
 		turn = ((turnSensitivity * left * left * left) + (1 - turnSensitivity) * left);
-		Drive(driveSpeed - turn, driveSpeed + turn);
+		DBLeft->Set(driveSpeed - turn);
+		DBRight->Set(driveSpeed + turn);
 	}
-
+	/*
 	 //TODO elevator buttons set levels
 	 if (Joystick1->GetRawButtonPressed(PS4::Square)){
 	 Elevator1->Set(ControlMode::Position, 0);
@@ -270,20 +274,19 @@ void Robot::TeleopPeriodic() {
 	 */
 
 //Claw intakes
-/*	if (Joystick2->GetRawButton(6)) {
-		ClawLeft->Set(1);
-		ClawRight->Set(1);
-	} else if (Joystick2->GetRawButton(7)) {
-		ClawLeft->Set(-1);
-		ClawRight->Set(-1);
-	} else {
-		ClawLeft->Set(0);
-		ClawRight->Set(0);
-	}
-*/
+	/*	if (Joystick2->GetRawButton(6)) {
+	 ClawLeft->Set(1);
+	 ClawRight->Set(1);
+	 } else if (Joystick2->GetRawButton(7)) {
+	 ClawLeft->Set(-1);
+	 ClawRight->Set(-1);
+	 } else {
+	 ClawLeft->Set(0);
+	 ClawRight->Set(0);
+	 }
+	 */
 //elevator
 	//TODO
-
 	frc::SmartDashboard::PutNumber("Gyroscope", gyro->GetAngle());
 	frc::SmartDashboard::PutNumber("POV", Joystick1->GetPOV());
 	frc::SmartDashboard::PutNumber("Elevator", Elevator1->GetSelectedSensorPosition(0));
@@ -316,9 +319,6 @@ void Robot::DisabledInit() {
 }
 
 void Robot::DisabledPeriodic() {
-	//gameData = frc::DriverStation::GetInstance().GetGameSpecificMessage(); //always get latest game data
-	//gyro->Calibrate(); //keep on Calibrating gyro while disabled so it is always Calibrated when needed
-	//Wait(1);
 }
 
 void Robot::TestInit() {

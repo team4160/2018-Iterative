@@ -81,6 +81,7 @@ private:
 	double left;
 	double right;
 	double turn;
+	double driveSpeed;
 
 	bool isHomed = false;
 };
