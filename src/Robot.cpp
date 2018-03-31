@@ -15,7 +15,8 @@
 
 #include "Robot.h"
 
-void Robot::MotorBuilder(WPI_TalonSRX *srx, bool brake = true, bool inverted = false, double RampTime = 0, int CurrentLimit = 20, int MaxCurrent = 20, int MaxTime = 100) {
+void Robot::MotorBuilder(WPI_TalonSRX *srx, bool brake = true, bool inverted = false, double RampTime = 0, int CurrentLimit = 20,
+		int MaxCurrent = 20, int MaxTime = 100) {
 	srx->SetInverted(inverted);
 	srx->ConfigOpenloopRamp(RampTime, kTimeoutMs);
 	srx->ConfigContinuousCurrentLimit(CurrentLimit, kTimeoutMs);
@@ -23,51 +24,9 @@ void Robot::MotorBuilder(WPI_TalonSRX *srx, bool brake = true, bool inverted = f
 	srx->ConfigPeakCurrentDuration(MaxTime, kTimeoutMs);
 	if (CurrentLimit > 0) {
 		srx->EnableCurrentLimit(true);
+	} else {
+		srx->EnableCurrentLimit(false);
 	}
-}
-
-void Robot::FindLimits() { //convert from while to if loops so it doesn't stop robot
-//find Claw up position
-	Timer temptimer;
-	temptimer.Start();
-	isHomed = true;
-	Claw->Set(ControlMode::PercentOutput, 0.04);	//move up by 4%
-	while (!ClawSensor->GetGeneralInput(ClawSensor->LIMF)) { //TODO not sure if switches are NormallyOpen
-		if (IsAutonomous()) {
-			if (mytimer->Get() >= kAutopausetime) {
-				isHomed = false;
-				goto clawEmergencyBreak;
-			}
-		}
-		if (temptimer.Get() > 4/*seconds*/) { //TODO find good timeout time
-			isHomed = false;
-			goto clawEmergencyBreak;
-		}
-		Wait(0.005);
-	}
-	Claw->SetSelectedSensorPosition(kClawEncoderKnownHigh, /*REMOTE*/0, /*TimeOut*/0);
-	clawEmergencyBreak:	//if broken out then don't set or move (will need to move manually)
-	temptimer.Reset();
-
-//find Elevator down position
-	Elevator1->Set(ControlMode::PercentOutput, -0.04);	//move down by 4%
-	while (!Elevator1->GetSensorCollection().IsRevLimitSwitchClosed()) {
-		if (IsAutonomous()) {
-			if (mytimer->Get() >= kAutopausetime) {
-				isHomed = false;
-				goto elevatorEmergencyBreak;
-			}
-		}
-		if (temptimer.Get() > 4/*seconds*/) {	//TODO find good timeout time
-			isHomed = false;
-			goto elevatorEmergencyBreak;
-		}
-		Wait(0.005);
-	}
-	Elevator1->SetSelectedSensorPosition(kElevatorEncoderKnownLow, /*REMOTE*/0, /*TimeOut*/0);
-	Elevator1->Set(ControlMode::Position, 0);	//move claw down
-	elevatorEmergencyBreak: //if broken out then don't set or move (will need to move manually)
-	;
 }
 
 void Robot::RGB(double R, double G, double B, CANifier *can) {	//Normally It is GRB
@@ -76,13 +35,19 @@ void Robot::RGB(double R, double G, double B, CANifier *can) {	//Normally It is 
 	can->SetLEDOutput(/*percent*/B, CANifier::LEDChannelC);
 }
 
+void Robot::SetColor() {
+	if (frc::DriverStation::GetInstance().GetAlliance() == DriverStation::kRed)
+		RGB(50, 0, 0, ClawSensor);
+	else if (frc::DriverStation::GetInstance().GetAlliance() == DriverStation::kBlue)
+		RGB(0, 0, 50, ClawSensor);
+	else
+		RGB(0, 50, 0, ClawSensor);
+}
+
 void Robot::RobotInit() {
-	m_chooser.AddDefault(kAutoNameDefault, kAutoNameDefault);
-	m_chooser.AddObject(kAutoNameCustom, kAutoNameCustom);
-	frc::SmartDashboard::PutData("Auto Modes", &m_chooser);
 	driveState = 0;	//set to tank
 
-//Setting the Controllers
+	//Setting the Controllers
 	Joystick1 = new Joystick(0);
 	Joystick2 = new Joystick(1);
 
@@ -105,13 +70,13 @@ void Robot::RobotInit() {
 
 	ClawSensor = new CANifier(21);
 
-//follow
+	//set followers
 	DBLeft2->Set(ControlMode::Follower, DBLeft->GetDeviceID());
 	DBRight2->Set(ControlMode::Follower, DBRight->GetDeviceID());
 	Elevator2->Set(ControlMode::Follower, Elevator1->GetDeviceID());
 	Elevator3->Set(ControlMode::Follower, Elevator1->GetDeviceID());
 
-//Motor Builder(&Motor,brake,invert,Ramp,limit,maxlimit,maxtime)
+	//Motor Builder(&Motor,brake,invert,Ramp,limit,maxlimit,maxtime)
 	MotorBuilder(DBLeft, /*brake*/true, /*invert*/false, driveRampTime, driveCurrentLimit, driveMaxCurrent, driveMaxTime);
 	MotorBuilder(DBLeft2, /*brake*/true, /*invert*/false, driveRampTime, driveCurrentLimit, driveMaxCurrent, driveMaxTime);
 	MotorBuilder(DBRight, /*brake*/true, /*invert*/true, driveRampTime, driveCurrentLimit, driveMaxCurrent, driveMaxTime);
@@ -155,6 +120,8 @@ void Robot::RobotInit() {
 //Elevator1->Config_kI(/*slot*/0, 0.2, kTimeoutMs);
 
 	ElevatorSolenoid->Set(DoubleSolenoid::Value::kOff);
+
+	gyro->Calibrate(); //takes around 5 seconds to execute and must not move
 }
 
 /**
@@ -170,26 +137,12 @@ void Robot::RobotInit() {
  */
 void Robot::AutonomousInit() {
 	mytimer->Start();
-	gyro->Calibrate();//takes around 5 seconds to execute
+	gyro->Reset();
 
 	gameData = frc::DriverStation::GetInstance().GetGameSpecificMessage();
-	if (frc::DriverStation::GetInstance().GetAlliance() == DriverStation::kRed)
-		RGB(50, 0, 0, ClawSensor);
-	else if (frc::DriverStation::GetInstance().GetAlliance() == DriverStation::kBlue)
-		RGB(0, 0, 50, ClawSensor);
-	else
-		RGB(0, 50, 0, ClawSensor);
 
-//FindLimits(); TODO uncomment when limit switches are installed //TODO convert so it is in AutonomousPeriodic
+	SetColor();
 
-	frc::SmartDashboard::PutNumber("Auto Timer", mytimer->Get());
-	while (mytimer->Get() <= kAutopausetime)
-		frc::SmartDashboard::PutNumber("Auto Timer", mytimer->Get());
-		//; //pause until kAutopausetime seconds has passed since time
-
-//	m_autoSelected = m_chooser.GetSelected();	//Java SmartDashboard
-//m_autoSelected = SmartDashboard::GetString("Auto Selector", kAutoNameDefault); //LabVIEW Dashboard
-//	std::cout << "Auto selected: " << m_autoSelected << std::endl;
 	/*
 	 if (gameData.length > 0) {
 	 if (gameData[0] == 'L') {
@@ -199,39 +152,41 @@ void Robot::AutonomousInit() {
 	 }
 	 }
 	 */
-	if (m_autoSelected == kAutoNameCustom) {
-		// No Auto
-	} else {
-		// Default Auto
-		//Wait(7);// unneeded because of while loop above
-		DBLeft->Set(0.5);
-		DBRight->Set(0.5);
-		Wait(3.5);
-		DBLeft->Set(0);
-		DBRight->Set(0);
-	} //TODO figure out how to turn 90 degree in auto with time(timeout) and (encoder or gyro)
+
+//TODO figure out how to turn 90 degree in auto with time(timeout) and (encoder or gyro)
+	Claw->Set(ControlMode::PercentOutput, 0.04);	//move up by 4%
+	Elevator1->Set(ControlMode::PercentOutput, -0.04);	//move down by 4%
 }
 
 void Robot::AutonomousPeriodic() {
-	if (m_autoSelected == kAutoNameCustom) {
-		// No Auto goes here
+	if (mytimer->Get() < kAutopausetime) {	//homing period
+		if (!isClawHomed) {
+			if (ClawSensor->GetGeneralInput(ClawSensor->LIMF)) {
+				Claw->SetSelectedSensorPosition(kClawEncoderKnownHigh, /*REMOTE*/0, /*TimeOut*/0);
+				Claw->Set(ControlMode::Position, 0);	//move claw down
+				isClawHomed = true;
+			}
+		}
+		if (!isElevatorHomed) {
+			if (Elevator1->GetSensorCollection().IsRevLimitSwitchClosed()) {
+				Elevator1->SetSelectedSensorPosition(kElevatorEncoderKnownLow, /*REMOTE*/0, /*TimeOut*/0);
+				Elevator1->Set(ControlMode::Position, 0);	//move elevator down
+			}
+		}
+	} else if (mytimer->Get() < (kAutopausetime + 3.5)) {
+		DBLeft->Set(0.5);
+		DBRight->Set(0.5);
+		Claw->Set(ControlMode::PercentOutput, 0);
+		Elevator1->Set(ControlMode::PercentOutput, 0);
 	} else {
-		// Default Auto goes here
+		DBLeft->Set(0);
+		DBRight->Set(0);
 	}
 }
 
 void Robot::TeleopInit() {
 	gameData = frc::DriverStation::GetInstance().GetGameSpecificMessage();
-
-	if (isHomed) {
-		Claw->Set(ControlMode::Position, 0);	//move claw down if homed
-		Elevator1->Set(ControlMode::Position, 0);	//move claw down if homed
-	} else {
-		Claw->SetSelectedSensorPosition(kClawEncoderKnownHigh, /*REMOTE*/0, /*TimeOut*/0);
-		Claw->Set(ControlMode::Position, 0);
-		Elevator1->Set(ControlMode::Position, 0);
-		Elevator1->SetSelectedSensorPosition(kElevatorEncoderKnownLow, /*REMOTE*/0, /*TimeOut*/0);
-	}
+	SetColor();
 }
 
 void Robot::TeleopPeriodic() {
@@ -240,9 +195,11 @@ void Robot::TeleopPeriodic() {
 		switch (driveState) {
 		case 0:
 			std::cout << "Tank Drive" << std::endl;
+			frc::SmartDashboard::PutString("Drive Mode", "Tank Drive");
 			break;
 		case 1:
 			std::cout << "Arcade Drive" << std::endl;
+			frc::SmartDashboard::PutString("Drive Mode", "Arcade Drive");
 		}
 	}
 	switch (driveState) {
@@ -260,6 +217,7 @@ void Robot::TeleopPeriodic() {
 		DBLeft->Set(driveSpeed - turn);
 		DBRight->Set(driveSpeed + turn);
 	}
+
 	/*
 	 //TODO elevator buttons set levels
 	 if (Joystick1->GetRawButtonPressed(PS4::Square)){
@@ -274,42 +232,40 @@ void Robot::TeleopPeriodic() {
 	 */
 
 //Claw intakes
-	/*	if (Joystick2->GetRawButton(6)) {
-	 ClawLeft->Set(1);
-	 ClawRight->Set(1);
-	 } else if (Joystick2->GetRawButton(7)) {
-	 ClawLeft->Set(-1);
-	 ClawRight->Set(-1);
-	 } else {
-	 ClawLeft->Set(0);
-	 ClawRight->Set(0);
-	 }
-	 */
+	if (Joystick2->GetRawButton(6)) {
+		ClawLeft->Set(1);
+		ClawRight->Set(1);
+	} else if (Joystick2->GetRawButton(7)) {
+		ClawLeft->Set(-1);
+		ClawRight->Set(-1);
+	} else {
+		ClawLeft->Set(0);
+		ClawRight->Set(0);
+	}
+
 //elevator
 	//TODO
+
 	frc::SmartDashboard::PutNumber("Gyroscope", gyro->GetAngle());
 	frc::SmartDashboard::PutNumber("POV", Joystick1->GetPOV());
-	frc::SmartDashboard::PutNumber("Elevator", Elevator1->GetSelectedSensorPosition(0));
-	frc::SmartDashboard::PutNumber("Elevator Pulse", Elevator1->GetSensorCollection().GetPulseWidthPosition());
-	frc::SmartDashboard::PutNumber("Elevator Quad", Elevator1->GetSensorCollection().GetQuadraturePosition());
-	frc::SmartDashboard::PutNumber("Claw", Claw->GetSelectedSensorPosition(0));
-	frc::SmartDashboard::PutNumber("Claw Pulse", Claw->GetSensorCollection().GetPulseWidthPosition());
-	frc::SmartDashboard::PutNumber("Claw Quad", Claw->GetSensorCollection().GetQuadraturePosition());
-	frc::SmartDashboard::PutNumber("Claw Forward Limit", ClawSensor->GetGeneralInput(ClawSensor->LIMF));
-	frc::SmartDashboard::PutNumber("Elevator Reverse Limit", Elevator1->GetSensorCollection().IsRevLimitSwitchClosed());
 	frc::SmartDashboard::PutNumber("Drive Left", DBLeft->GetSelectedSensorPosition(0));
 	frc::SmartDashboard::PutNumber("Drive Left Pulse", DBLeft->GetSensorCollection().GetPulseWidthPosition());
 	frc::SmartDashboard::PutNumber("Drive Left Quad", DBLeft->GetSensorCollection().GetQuadraturePosition());
 	frc::SmartDashboard::PutNumber("Drive Right", DBRight->GetSelectedSensorPosition(0));
 	frc::SmartDashboard::PutNumber("Drive Right Pulse", DBRight->GetSensorCollection().GetPulseWidthPosition());
 	frc::SmartDashboard::PutNumber("Drive Right Quad", DBRight->GetSensorCollection().GetQuadraturePosition());
+	frc::SmartDashboard::PutNumber("Elevator", Elevator1->GetSelectedSensorPosition(0));
+	frc::SmartDashboard::PutNumber("Elevator Pulse", Elevator1->GetSensorCollection().GetPulseWidthPosition());
+	frc::SmartDashboard::PutNumber("Elevator Quad", Elevator1->GetSensorCollection().GetQuadraturePosition());
+	frc::SmartDashboard::PutNumber("Elevator Reverse Limit", Elevator1->GetSensorCollection().IsRevLimitSwitchClosed());
+	frc::SmartDashboard::PutNumber("Claw", Claw->GetSelectedSensorPosition(0));
+	frc::SmartDashboard::PutNumber("Claw Pulse", Claw->GetSensorCollection().GetPulseWidthPosition());
+	frc::SmartDashboard::PutNumber("Claw Quad", Claw->GetSensorCollection().GetQuadraturePosition());
+	frc::SmartDashboard::PutNumber("Claw Forward Limit", ClawSensor->GetGeneralInput(ClawSensor->LIMF));
 
-//just for testing TODO delete after testing and Dashboard code above
+	//just for testing TODO delete after testing and Dashboard code above
 	Claw->Set(ControlMode::PercentOutput, Joystick2->GetRawAxis(Attack::Down) * -1);
 	Elevator1->Set(ControlMode::PercentOutput, Joystick2->GetRawAxis(Attack::ReverseThrottle) * -1);
-	if (Joystick1->GetRawButtonPressed(PS4::Pad)) {
-		FindLimits();
-	}
 }
 
 void Robot::DisabledInit() {

@@ -55,8 +55,8 @@ public:
 
 	//Setting up some functions
 	void MotorBuilder(WPI_TalonSRX *srx, bool brake, bool inverted, double RampTime, int CurrentLimit, int MaxCurrent, int MaxTime);
-	void FindLimits();
 	void RGB(double R, double G, double B, CANifier *can);
+	void SetColor();
 	void AutonomousInit() override;
 	void AutonomousPeriodic() override;
 	void DisabledInit() override;
@@ -69,11 +69,6 @@ public:
 	void TestPeriodic() override;
 
 private:
-	frc::SendableChooser<std::string> m_chooser;
-	const std::string kAutoNameDefault = "Default";
-	const std::string kAutoNameCustom = "No Auto";
-	std::string m_autoSelected;
-
 	std::string gameData;
 
 	unsigned int driveState;
@@ -83,5 +78,6 @@ private:
 	double turn;
 	double driveSpeed;
 
-	bool isHomed = false;
+	bool isClawHomed = false;
+	bool isElevatorHomed = false;
 };

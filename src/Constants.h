@@ -6,7 +6,6 @@
 /*----------------------------------------------------------------------------*/
 
 #pragma once
-
 enum PS4 {
 	Square = 1,
 	Cross = 2,
@@ -27,7 +26,7 @@ enum PS4 {
 	PSRightStickRight = 2,
 	PSRightStickDown = 5,
 	L2In = 3, //start at -1 and goes to 1      (L2In+1)/2 0 to 100%
-	R2In = 4  //""  ""
+	R2In = 4  //start at -1 and goes to 1
 };
 
 enum XB1 { //TODO get XBox mapping
