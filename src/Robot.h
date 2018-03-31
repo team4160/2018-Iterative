@@ -23,9 +23,9 @@ public:
 
 	//Setting up the TalonSRX's config
 	static constexpr double driveRampTime = 0.25;
-	static constexpr int driveCurrentLimit = 33;
-	static constexpr int driveMaxCurrent = 39;
-	static constexpr int driveMaxTime = 500;
+	static constexpr int driveCurrentLimit = 0;
+	static constexpr int driveMaxCurrent = 0;
+	static constexpr int driveMaxTime = 0;
 
 	static constexpr double clawRampTime = 0.25;
 	static constexpr int clawCurrentLimit = 10;
@@ -34,8 +34,8 @@ public:
 
 	static constexpr double elevatorRampTime = 0.25;
 	static constexpr int elevatorCurrentLimit = 33;
-	static constexpr int elevatorMaxCurrent = 39;
-	static constexpr int elevatorMaxTime = 500;
+	static constexpr int elevatorMaxCurrent = 60;
+	static constexpr int elevatorMaxTime = 1000;
 
 	static constexpr int clawForwardLimit = kEncoderUnit * 5; //eg. 5 rotations TODO test the top soft limit
 	static constexpr int clawReverseLimit = kEncoderUnit * 0; //TODO test bottom soft limit
