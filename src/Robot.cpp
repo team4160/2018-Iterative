@@ -15,8 +15,7 @@
 
 #include "Robot.h"
 
-void Robot::MotorBuilder(WPI_TalonSRX *srx, bool brake = true, bool inverted = false, double RampTime = 0, int CurrentLimit = 20,
-		int MaxCurrent = 20, int MaxTime = 100) {
+void Robot::MotorBuilder(WPI_TalonSRX *srx, bool brake = true, bool inverted = false, double RampTime = 0, int CurrentLimit = 20, int MaxCurrent = 20, int MaxTime = 100) {
 	srx->SetInverted(inverted);
 	srx->ConfigOpenloopRamp(RampTime, kTimeoutMs);
 	srx->ConfigContinuousCurrentLimit(CurrentLimit, kTimeoutMs);
@@ -81,12 +80,15 @@ void Robot::RobotInit() {
 	MotorBuilder(DBLeft2, /*brake*/true, /*invert*/false, driveRampTime, driveCurrentLimit, driveMaxCurrent, driveMaxTime);
 	MotorBuilder(DBRight, /*brake*/true, /*invert*/true, driveRampTime, driveCurrentLimit, driveMaxCurrent, driveMaxTime);
 	MotorBuilder(DBRight2, /*brake*/true, /*invert*/true, driveRampTime, driveCurrentLimit, driveMaxCurrent, driveMaxTime);
-	MotorBuilder(Claw, /*brake*/true, /*invert*/false, clawRampTime, clawCurrentLimit, clawMaxCurrent, clawMaxTime);
+	MotorBuilder(Claw, /*brake*/true, /*invert*/true, clawRampTime, clawCurrentLimit, clawMaxCurrent, clawMaxTime);
 	MotorBuilder(ClawLeft, /*brake*/true, /*invert*/false, clawRampTime, clawCurrentLimit, clawMaxCurrent, clawMaxTime);
 	MotorBuilder(ClawRight, /*brake*/true, /*invert*/true, clawRampTime, clawCurrentLimit, clawMaxCurrent, clawMaxTime);
 	MotorBuilder(Elevator1, /*brake*/true, /*invert*/false, elevatorRampTime, elevatorCurrentLimit, elevatorMaxCurrent, elevatorMaxTime);
 	MotorBuilder(Elevator2, /*brake*/true, /*invert*/false, elevatorRampTime, elevatorCurrentLimit, elevatorMaxCurrent, elevatorMaxTime);
 	MotorBuilder(Elevator3, /*brake*/true, /*invert*/false, elevatorRampTime, elevatorCurrentLimit, elevatorMaxCurrent, elevatorMaxTime);
+
+	DBLeft->SetSensorPhase(true);
+	DBRight->SetSensorPhase(true);
 
 //Add CANifier encoder
 	ClawSensor->ConfigVelocityMeasurementPeriod(CANifierVelocityMeasPeriod::Period_100Ms, kTimeoutMs);
@@ -98,18 +100,18 @@ void Robot::RobotInit() {
 	0, kTimeoutMs);
 	Claw->ConfigRemoteFeedbackFilter(0x00, RemoteSensorSource::RemoteSensorSource_Off, /*REMOTE*/1, kTimeoutMs); //turn off second sensor for claw
 	Claw->ConfigSelectedFeedbackSensor(FeedbackDevice::RemoteSensor0, /*PID_PRIMARY*/0, kTimeoutMs);
-//Claw->SetSensorPhase(true); //TODO Sensor Invert?
-	Claw->ConfigForwardLimitSwitchSource(RemoteLimitSwitchSource_RemoteCANifier, LimitSwitchNormal_NormallyOpen, ClawSensor->GetDeviceNumber(), 0);
+	Claw->SetSensorPhase(true); //TODO Sensor Invert?
+	Claw->ConfigReverseLimitSwitchSource(RemoteLimitSwitchSource_RemoteCANifier, LimitSwitchNormal_NormallyOpen, ClawSensor->GetDeviceNumber(), 0);
 
 //TODO Claw PID See 10.1 set P=1 I=10+ maybe don't override but use website for now
 //Claw->Config_kP(/*slot*/0, 1, kTimeoutMs);
 //Claw->Config_kI(/*slot*/0, 10, kTimeoutMs);
 
 //TODO create soft encoder limits when you found positions
-	Claw->ConfigForwardSoftLimitThreshold(clawForwardLimit, kTimeoutMs);
-	Claw->ConfigForwardSoftLimitEnable(true, kTimeoutMs);
-	Claw->ConfigReverseSoftLimitThreshold(clawReverseLimit, kTimeoutMs);
-	Claw->ConfigReverseSoftLimitEnable(true, kTimeoutMs);
+	//Claw->ConfigForwardSoftLimitThreshold(clawForwardLimit, kTimeoutMs);
+	//Claw->ConfigForwardSoftLimitEnable(true, kTimeoutMs);
+	//Claw->ConfigReverseSoftLimitThreshold(clawReverseLimit, kTimeoutMs);
+	//Claw->ConfigReverseSoftLimitEnable(true, kTimeoutMs);
 
 //elevator sensors
 	Elevator1->ConfigRemoteFeedbackFilter(0x00, RemoteSensorSource::RemoteSensorSource_Off,/*REMOTE*/0, kTimeoutMs);
@@ -171,6 +173,7 @@ void Robot::AutonomousPeriodic() {
 			if (Elevator1->GetSensorCollection().IsRevLimitSwitchClosed()) {
 				Elevator1->SetSelectedSensorPosition(kElevatorEncoderKnownLow, /*REMOTE*/0, /*TimeOut*/0);
 				Elevator1->Set(ControlMode::Position, 0);	//move elevator down
+				isElevatorHomed = true;
 			}
 		}
 	} else if (mytimer->Get() < (kAutopausetime + 3.5)) {
@@ -187,6 +190,8 @@ void Robot::AutonomousPeriodic() {
 void Robot::TeleopInit() {
 	gameData = frc::DriverStation::GetInstance().GetGameSpecificMessage();
 	SetColor();
+	DBLeft->SetSelectedSensorPosition(0, /*REMOTE*/0, /*TimeOut*/0);
+	DBRight->SetSelectedSensorPosition(0, /*REMOTE*/0, /*TimeOut*/0);
 }
 
 void Robot::TeleopPeriodic() {
@@ -204,14 +209,14 @@ void Robot::TeleopPeriodic() {
 	}
 	switch (driveState) {
 	case 0:	//Tank
-		left = Joystick1->GetRawAxis(PS4::PSLeftStickDown);
-		right = Joystick1->GetRawAxis(PS4::PSRightStickDown);
+		left = Joystick1->GetRawAxis(XB1::XBLeftStickDown);
+		right = Joystick1->GetRawAxis(XB1::XBRightStickDown);
 		DBLeft->Set(left);
 		DBRight->Set(right);
 		break;
 	case 1:	//Arcade
-		left = (Joystick1->GetRawAxis(0));
-		driveSpeed = (Joystick1->GetRawAxis(5));
+		left = (Joystick1->GetRawAxis(XB1::XBRightStickRight));
+		driveSpeed = (Joystick1->GetRawAxis(XB1::XBLeftStickDown));
 
 		turn = ((turnSensitivity * left * left * left) + (1 - turnSensitivity) * left);
 		DBLeft->Set(driveSpeed - turn);
@@ -264,8 +269,37 @@ void Robot::TeleopPeriodic() {
 	frc::SmartDashboard::PutNumber("Claw Forward Limit", ClawSensor->GetGeneralInput(ClawSensor->LIMF));
 
 	//just for testing TODO delete after testing and Dashboard code above
-	Claw->Set(ControlMode::PercentOutput, Joystick2->GetRawAxis(Attack::Down) * -1);
-	Elevator1->Set(ControlMode::PercentOutput, Joystick2->GetRawAxis(Attack::ReverseThrottle) * -1);
+	//Claw->Set(ControlMode::PercentOutput, Joystick2->GetRawAxis(Attack::Down) * -1);
+	//Elevator1->Set(ControlMode::PercentOutput, Joystick2->GetRawAxis(Attack::ReverseThrottle) * -1);
+
+	if (Elevator1->GetSensorCollection().IsRevLimitSwitchClosed()) {
+		Elevator1->SetSelectedSensorPosition(kElevatorEncoderKnownLow, /*REMOTE*/0, /*TimeOut*/0);
+		isElevatorHomed = true;
+		if (flagElevatorDown) {
+			flagElevatorDown = false;
+			Elevator1->Set(ControlMode::Position, 0);
+		}
+	}
+	if (!ClawSensor->GetGeneralInput(ClawSensor->LIMR)) {
+		Claw->SetSelectedSensorPosition(kClawEncoderKnownHigh, /*REMOTE*/0, /*TimeOut*/0);
+		ClawSensor->SetQuadraturePosition(kClawEncoderKnownHigh,0);
+	}
+	if (Joystick2->GetRawButtonPressed(2)) {
+		Elevator1->Set(ControlMode::PercentOutput, -0.25);
+		flagElevatorDown = true;
+	}
+	if (Joystick2->GetRawButtonPressed(4)) {
+		Elevator1->Set(ControlMode::Position, kElevatorEncoderMiddle);
+	}
+	if (Joystick2->GetRawButtonPressed(3)) {
+		Elevator1->Set(ControlMode::Position, kElevatorEncoderHigh);
+	}
+	if (Joystick2->GetRawButtonPressed(8)) {
+		Claw->Set(ControlMode::Position, -200);
+	}
+	if (Joystick2->GetRawButtonPressed(9)) {
+		Claw->Set(ControlMode::PercentOutput, -0.25);
+	}
 }
 
 void Robot::DisabledInit() {

@@ -24,29 +24,30 @@ enum PS4 {
 	PSLeftStickRight = 0,
 	PSLeftStickDown = 1,
 	PSRightStickRight = 2,
-	PSRightStickDown = 5,
 	L2In = 3, //start at -1 and goes to 1      (L2In+1)/2 0 to 100%
-	R2In = 4  //start at -1 and goes to 1
+	R2In = 4,  //start at -1 and goes to 1
+	PSRightStickDown = 5
+	//POV up is 0 none is -1
 };
 
 enum XB1 { //TODO get XBox mapping
 	A = 1,
+	B = 2,
 	X = 3,
-	B = 3,
 	Y = 4,
 	LB = 5,
 	RB = 6,
-	View = 9,
-	Menu = 10,
-	LS = 11,
-	RS = 12,
-	XB = 13,
+	View = 7,
+	Menu = 8,
+	LS = 9,
+	RS = 10,
 	XBLeftStickRight = 0,
 	XBLeftStickDown = 1,
-	XBRightStickRight = 2,
-	XBRightStickDown = 5,
-	LIn = 3,
-	RIn = 4
+	LIn = 2, //0 to 1
+	RIn = 3, //0 to 1
+	XBRightStickRight = 4,
+	XBRightStickDown = 5
+	//POV up is 0 none is -1
 };
 
 enum Attack {

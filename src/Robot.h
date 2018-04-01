@@ -12,12 +12,14 @@
 #include <iostream>
 #include <string>
 
-class Robot : public frc::IterativeRobot {
+class Robot: public frc::IterativeRobot {
 public:
 	static constexpr int kTimeoutMs = 0; //change this to 0 if you don't want verification
 	static constexpr int kEncoderUnit = 4096;
-	static constexpr int kClawEncoderKnownHigh = 4096; //TODO find low position
+	static constexpr int kClawEncoderKnownHigh = -1000; //TODO find low position
 	static constexpr int kElevatorEncoderKnownLow = 0; //TODO find high position
+	static constexpr int kElevatorEncoderMiddle = 16000;
+	static constexpr int kElevatorEncoderHigh = 33000;
 	static constexpr int kAutopausetime = 10;
 	static constexpr float turnSensitivity = 0.6;
 
@@ -80,4 +82,7 @@ private:
 
 	bool isClawHomed = false;
 	bool isElevatorHomed = false;
+	bool flagElevatorDown = false;
+	bool flagElevatorMid = false;
+	bool flagElevatorHigh = false;
 };
