@@ -12,7 +12,7 @@
 #include <iostream>
 #include <string>
 
-class Robot: public frc::IterativeRobot {
+class Robot : public frc::IterativeRobot {
 public:
 	static constexpr int kTimeoutMs = 0; //change this to 0 if you don't want verification
 	static constexpr int kEncoderUnit = 4096;
@@ -20,8 +20,10 @@ public:
 	static constexpr int kElevatorEncoderKnownLow = 0; //TODO find high position
 	static constexpr int kElevatorEncoderMiddle = 16000;
 	static constexpr int kElevatorEncoderHigh = 36500;
-	static constexpr int kAutopausetime = 10;
-	static constexpr float turnSensitivity = 0.6;
+	static constexpr double kAutopausetime = 10;
+	static constexpr double turnSensitivity = 0.6;
+	static constexpr double elevatorSenseCurrent = 2.0;
+	static constexpr double clawSenseCurrent = 2.0;
 
 	//Setting up the TalonSRX's config
 	static constexpr double driveRampTime = 0.25;
@@ -58,7 +60,9 @@ public:
 	//Setting up some functions
 	void MotorBuilder(WPI_TalonSRX *srx, bool brake, bool inverted, double RampTime, int CurrentLimit, int MaxCurrent, int MaxTime);
 	void RGB(double R, double G, double B, CANifier *can);
-	void SetColor();
+	void SetAllianceColor();
+	void homeElevator();
+	void homeClaw();
 	void AutonomousInit() override;
 	void AutonomousPeriodic() override;
 	void DisabledInit() override;
@@ -85,4 +89,5 @@ private:
 	bool flagElevatorDown = false;
 	bool flagElevatorMid = false;
 	bool flagElevatorHigh = false;
+	bool flagClawUp = false;
 };
