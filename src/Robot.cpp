@@ -45,8 +45,8 @@ void Robot::SetAllianceColor() {
 }
 
 void Robot::homeElevator() {
-	if (PDP->GetCurrent(kPDP::Elevator1) > elevatorSenseCurrent | PDP->GetCurrent(kPDP::Elevator2) > elevatorSenseCurrent
-			| PDP->GetCurrent(kPDP::Elevator3) > elevatorSenseCurrent) {
+	if ((PDP->GetCurrent(kPDP::Elevator1) > elevatorSenseCurrent) | (PDP->GetCurrent(kPDP::Elevator2) > elevatorSenseCurrent)
+			| (PDP->GetCurrent(kPDP::Elevator3) > elevatorSenseCurrent)) {
 		isElevatorHomed = true;	//for auto
 		flagElevatorDown = false;	//for teleop
 		Elevator1->SetSelectedSensorPosition(kElevatorEncoderKnownLow, /*REMOTE*/0, /*TimeOut*/0);
@@ -61,7 +61,8 @@ void Robot::homeClaw() {
 //		Claw->Set(ControlMode::PercentOutput, 0);
 		Claw->SetSelectedSensorPosition(kClawEncoderKnownHigh, /*REMOTE*/0, /*TimeOut*/0);
 //		ClawSensor->SetQuadraturePosition(kClawEncoderKnownHigh, 0);
-		Claw->Set(ControlMode::Position, kClawEncoderKnownHigh);
+//		Claw->Set(ControlMode::Position, kClawEncoderKnownHigh);
+		Claw->Set(ControlMode::PercentOutput, 0);
 	}
 }
 
@@ -123,7 +124,7 @@ void Robot::RobotInit() {
 	Claw->ConfigRemoteFeedbackFilter(0x00, RemoteSensorSource::RemoteSensorSource_Off, /*REMOTE*/1, kTimeoutMs); //turn off second sensor for claw
 	Claw->ConfigSelectedFeedbackSensor(FeedbackDevice::RemoteSensor0, /*PID_PRIMARY*/0, kTimeoutMs);
 	Claw->SetSensorPhase(true); //TODO Sensor Invert?
-	Claw->ConfigReverseLimitSwitchSource(RemoteLimitSwitchSource_RemoteCANifier, LimitSwitchNormal_NormallyOpen, ClawSensor->GetDeviceNumber(), 0);
+//	Claw->ConfigReverseLimitSwitchSource(RemoteLimitSwitchSource_RemoteCANifier, LimitSwitchNormal_NormallyOpen, ClawSensor->GetDeviceNumber(), 0);
 
 //TODO Claw PID See 10.1 set P=1 I=10+ maybe don't override but use website for now
 //	Claw->Config_kP(/*slot*/0, 0.5, kTimeoutMs);
@@ -190,7 +191,7 @@ void Robot::AutonomousPeriodic() {
 	if (!isClawHomed) {
 		homeClaw();
 	}
-	if (mytimer->Get() > kAutopausetime & mytimer->Get() > (kAutopausetime + 3.5)) {
+	if ((mytimer->Get() > (kAutopausetime)) & (mytimer->Get() > (kAutopausetime + 3.5))) {
 		DBLeft->Set(0.5);
 		DBRight->Set(0.5);
 	} else {
@@ -205,7 +206,7 @@ void Robot::TeleopInit() {
 }
 
 void Robot::TeleopPeriodic() {
-	if (Joystick1->GetRawButtonPressed(PS4::Options)) {
+	if (Joystick1->GetRawButtonPressed(XB1::View)) {
 		++driveState %= 3;	//increment and reset to 0 if 3
 		switch (driveState) {
 		case 0:	//Tank
@@ -234,60 +235,69 @@ void Robot::TeleopPeriodic() {
 	}
 
 //Claw intakes
-	if (Joystick2->GetRawButton(6)) {
-		ClawLeft->Set(1);
-		ClawRight->Set(1);
-	} else if (Joystick2->GetRawButton(7)) {
+	if (Joystick2->GetRawButton(PS4::L1)) {
 		ClawLeft->Set(-1);
+	}else{
+		ClawLeft->Set((Joystick2->GetRawAxis(PS4::L2In)+1)/2);
+	}
+	if (Joystick2->GetRawButton(PS4::R1)) {
 		ClawRight->Set(-1);
-	} else {
-		ClawLeft->Set(0);
-		ClawRight->Set(0);
+	}
+	else {
+		ClawRight->Set((Joystick2->GetRawAxis(PS4::R2In)+1)/2);
 	}
 
-	if (Joystick2->GetRawButtonPressed(2)) {	//elevator low
-		Elevator1->Set(ControlMode::PercentOutput, -0.35);
-		flagElevatorDown = true;
-	}
-	if (Joystick2->GetRawButtonPressed(4)) {	//elevator mid
-		Elevator1->Set(ControlMode::Position, kElevatorEncoderMiddle);
-	}
-	if (Joystick2->GetRawButtonPressed(3)) {	//elevator high
-		Elevator1->Set(ControlMode::Position, kElevatorEncoderHigh);
-	}
-	if (Joystick2->GetRawButtonPressed(8)) {	//claw down
+//	if (Joystick2->GetRawButtonPressed(2)) {	//elevator low
+//		Elevator1->Set(ControlMode::PercentOutput, -0.35);
+//		flagElevatorDown = true;
+//	}
+//	if (Joystick2->GetRawButtonPressed(4)) {	//elevator mid
+//		Elevator1->Set(ControlMode::Position, kElevatorEncoderMiddle);
+//	}
+//	if (Joystick2->GetRawButtonPressed(3)) {	//elevator high
+//		Elevator1->Set(ControlMode::Position, kElevatorEncoderHigh);
+//	}
+	if (Joystick2->GetRawButton(PS4::Cross)) {	//claw down
 		Claw->Set(ControlMode::Position, -200);
 	}
-	if (Joystick2->GetRawButtonPressed(9)) {	//claw up
-		Claw->Set(ControlMode::PercentOutput, -0.20);
+	if (Joystick2->GetRawButton(PS4::Triangle)) {	//claw up
+		Claw->Set(ControlMode::PercentOutput, -0.4);
 		flagClawUp = true;
 	}
-	if (flagElevatorDown) {	//sense elevator down with current
-		homeElevator();
-	}
+//	if (flagElevatorDown) {	//sense elevator down with current
+//		homeElevator();
+//	}
 	if (flagClawUp) {	//sense claw up with current
 		homeClaw();
 	}
 
-	frc::SmartDashboard::PutNumber("Gyroscope", gyro->GetAngle());
-	frc::SmartDashboard::PutNumber("POV", Joystick1->GetPOV());
-	frc::SmartDashboard::PutNumber("Drive Left", DBLeft->GetSelectedSensorPosition(0));
-	frc::SmartDashboard::PutNumber("Drive Left Pulse", DBLeft->GetSensorCollection().GetPulseWidthPosition());
-	frc::SmartDashboard::PutNumber("Drive Left Quad", DBLeft->GetSensorCollection().GetQuadraturePosition());
-	frc::SmartDashboard::PutNumber("Drive Right", DBRight->GetSelectedSensorPosition(0));
-	frc::SmartDashboard::PutNumber("Drive Right Pulse", DBRight->GetSensorCollection().GetPulseWidthPosition());
-	frc::SmartDashboard::PutNumber("Drive Right Quad", DBRight->GetSensorCollection().GetQuadraturePosition());
-	frc::SmartDashboard::PutNumber("Elevator", Elevator1->GetSelectedSensorPosition(0));
-	frc::SmartDashboard::PutNumber("Elevator Pulse", Elevator1->GetSensorCollection().GetPulseWidthPosition());
-	frc::SmartDashboard::PutNumber("Elevator Quad", Elevator1->GetSensorCollection().GetQuadraturePosition());
-	frc::SmartDashboard::PutNumber("Elevator Reverse Limit", Elevator1->GetSensorCollection().IsRevLimitSwitchClosed());
+//	frc::SmartDashboard::PutNumber("Gyroscope", gyro->GetAngle());
+	frc::SmartDashboard::PutNumber("POV", Joystick2->GetPOV());
+//	frc::SmartDashboard::PutNumber("Drive Left", DBLeft->GetSelectedSensorPosition(0));
+//	frc::SmartDashboard::PutNumber("Drive Left Pulse", DBLeft->GetSensorCollection().GetPulseWidthPosition());
+//	frc::SmartDashboard::PutNumber("Drive Left Quad", DBLeft->GetSensorCollection().GetQuadraturePosition());
+//	frc::SmartDashboard::PutNumber("Drive Right", DBRight->GetSelectedSensorPosition(0));
+//	frc::SmartDashboard::PutNumber("Drive Right Pulse", DBRight->GetSensorCollection().GetPulseWidthPosition());
+//	frc::SmartDashboard::PutNumber("Drive Right Quad", DBRight->GetSensorCollection().GetQuadraturePosition());
+//	frc::SmartDashboard::PutNumber("Elevator", Elevator1->GetSelectedSensorPosition(0));
+//	frc::SmartDashboard::PutNumber("Elevator Pulse", Elevator1->GetSensorCollection().GetPulseWidthPosition());
+//	frc::SmartDashboard::PutNumber("Elevator Quad", Elevator1->GetSensorCollection().GetQuadraturePosition());
+//	frc::SmartDashboard::PutNumber("Elevator Reverse Limit", Elevator1->GetSensorCollection().IsRevLimitSwitchClosed());
 	frc::SmartDashboard::PutNumber("Claw", Claw->GetSelectedSensorPosition(0));
-	frc::SmartDashboard::PutNumber("Claw Pulse", Claw->GetSensorCollection().GetPulseWidthPosition());
-	frc::SmartDashboard::PutNumber("Claw Quad", Claw->GetSensorCollection().GetQuadraturePosition());
-	frc::SmartDashboard::PutNumber("Claw Forward Limit", ClawSensor->GetGeneralInput(ClawSensor->LIMF));
-	frc::SmartDashboard::PutNumber("Elevator1", PDP->GetCurrent(kPDP::Elevator1));
-	frc::SmartDashboard::PutNumber("Elevator2", PDP->GetCurrent(kPDP::Elevator2));
-	frc::SmartDashboard::PutNumber("Elevator3", PDP->GetCurrent(kPDP::Elevator3));
+//	frc::SmartDashboard::PutNumber("Claw Pulse", Claw->GetSensorCollection().GetPulseWidthPosition());
+//	frc::SmartDashboard::PutNumber("Claw Quad", Claw->GetSensorCollection().GetQuadraturePosition());
+//	frc::SmartDashboard::PutNumber("Claw Forward Limit", ClawSensor->GetGeneralInput(ClawSensor->LIMF));
+//
+//	frc::SmartDashboard::PutNumber("DBLeft", PDP->GetCurrent(kPDP::DBLeft));
+//	frc::SmartDashboard::PutNumber("DBLeft2", PDP->GetCurrent(kPDP::DBLeft2));
+//	frc::SmartDashboard::PutNumber("DBRight", PDP->GetCurrent(kPDP::DBRight));
+//	frc::SmartDashboard::PutNumber("DBRight2", PDP->GetCurrent(kPDP::DBRight2));
+//	frc::SmartDashboard::PutNumber("Elevator1", PDP->GetCurrent(kPDP::Elevator1));
+//	frc::SmartDashboard::PutNumber("Elevator2", PDP->GetCurrent(kPDP::Elevator2));
+//	frc::SmartDashboard::PutNumber("Elevator3", PDP->GetCurrent(kPDP::Elevator3));
+	frc::SmartDashboard::PutNumber("Claw current", PDP->GetCurrent(kPDP::Claw));
+	frc::SmartDashboard::PutNumber("ClawLeft current", PDP->GetCurrent(kPDP::ClawLeft));
+	frc::SmartDashboard::PutNumber("ClawRight current", PDP->GetCurrent(kPDP::ClawRight));
 
 //	just for testing TODO delete after testing and Dashboard code above
 //	Claw->Set(ControlMode::PercentOutput, Joystick2->GetRawAxis(Attack::Down) * -1);

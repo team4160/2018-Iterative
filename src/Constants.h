@@ -24,7 +24,7 @@ enum PS4 {
 	PSLeftStickRight = 0, //
 	PSLeftStickDown = 1, //
 	PSRightStickRight = 2, //
-	L2In = 3, //start at -1 and goes to 1      (L2In+1)/2 0 to 100%
+	L2In = 3, //start at -1 and goes to 1      ((L2In)+1)/2 0 to 100%
 	R2In = 4,  //start at -1 and goes to 1
 	PSRightStickDown = 5  //
 //POV up is 0 none is -1

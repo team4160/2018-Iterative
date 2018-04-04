@@ -22,8 +22,8 @@ public:
 	static constexpr int kElevatorEncoderHigh = 36500;
 	static constexpr double kAutopausetime = 10;
 	static constexpr double turnSensitivity = 0.6;
-	static constexpr double elevatorSenseCurrent = 2.0;
-	static constexpr double clawSenseCurrent = 2.0;
+	static constexpr double elevatorSenseCurrent = 5.0;
+	static constexpr double clawSenseCurrent = 5.0;
 
 	//Setting up the TalonSRX's config
 	static constexpr double driveRampTime = 0.25;
