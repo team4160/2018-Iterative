@@ -19,7 +19,7 @@ public:
 	static constexpr int kClawEncoderKnownHigh = -1000; //TODO find low position
 	static constexpr int kElevatorEncoderKnownLow = 0; //TODO find high position
 	static constexpr int kElevatorEncoderMiddle = 16000;
-	static constexpr int kElevatorEncoderHigh = 33000;
+	static constexpr int kElevatorEncoderHigh = 36500;
 	static constexpr int kAutopausetime = 10;
 	static constexpr float turnSensitivity = 0.6;
 

@@ -53,3 +53,16 @@ enum XB1 { //TODO get XBox mapping
 enum Attack {
 	Right = 0, Down = 1, ReverseThrottle = 2
 };
+
+enum kPDP{
+	DBLeft=13,
+	DBLeft2=12,
+	DBRight=3,
+	DBRight2=2,
+	Claw=14,
+	ClawLeft=11,
+	ClawRight=4,
+	Elevator1=15,
+	Elevator2=0,
+	Elevator3=1,
+};

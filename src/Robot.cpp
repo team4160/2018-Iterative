@@ -195,7 +195,7 @@ void Robot::TeleopInit() {
 }
 
 void Robot::TeleopPeriodic() {
-	if (Joystick1->GetRawButtonPressed(PS4::Options)) {
+	/*if (Joystick1->GetRawButtonPressed(PS4::Options)) {
 		++driveState %= 3;	//increment and reset to 0 if 3
 		switch (driveState) {
 		case 0:
@@ -221,7 +221,7 @@ void Robot::TeleopPeriodic() {
 		turn = ((turnSensitivity * left * left * left) + (1 - turnSensitivity) * left);
 		DBLeft->Set(driveSpeed - turn);
 		DBRight->Set(driveSpeed + turn);
-	}
+	}*/
 
 	/*
 	 //TODO elevator buttons set levels
@@ -267,25 +267,29 @@ void Robot::TeleopPeriodic() {
 	frc::SmartDashboard::PutNumber("Claw Pulse", Claw->GetSensorCollection().GetPulseWidthPosition());
 	frc::SmartDashboard::PutNumber("Claw Quad", Claw->GetSensorCollection().GetQuadraturePosition());
 	frc::SmartDashboard::PutNumber("Claw Forward Limit", ClawSensor->GetGeneralInput(ClawSensor->LIMF));
+	frc::SmartDashboard::PutNumber("Elevator1", PDP->GetCurrent(kPDP::Elevator1));
+	frc::SmartDashboard::PutNumber("Elevator2", PDP->GetCurrent(kPDP::Elevator2));
+	frc::SmartDashboard::PutNumber("Elevator3", PDP->GetCurrent(kPDP::Elevator3));
 
 	//just for testing TODO delete after testing and Dashboard code above
 	//Claw->Set(ControlMode::PercentOutput, Joystick2->GetRawAxis(Attack::Down) * -1);
-	//Elevator1->Set(ControlMode::PercentOutput, Joystick2->GetRawAxis(Attack::ReverseThrottle) * -1);
+	if(Joystick2->GetRawButton(1))Elevator1->Set(ControlMode::PercentOutput, Joystick2->GetRawAxis(Attack::ReverseThrottle) * -1);
+	else Elevator1->Set(ControlMode::PercentOutput, 0);
 
-	if (Elevator1->GetSensorCollection().IsRevLimitSwitchClosed()) {
-		Elevator1->SetSelectedSensorPosition(kElevatorEncoderKnownLow, /*REMOTE*/0, /*TimeOut*/0);
-		isElevatorHomed = true;
+//	if (Elevator1->GetSensorCollection().IsRevLimitSwitchClosed()) {
+//		Elevator1->SetSelectedSensorPosition(kElevatorEncoderKnownLow, /*REMOTE*/0, /*TimeOut*/0);
+/*		isElevatorHomed = true;
 		if (flagElevatorDown) {
 			flagElevatorDown = false;
 			Elevator1->Set(ControlMode::Position, 0);
 		}
 	}
-	if (!ClawSensor->GetGeneralInput(ClawSensor->LIMR)) {
-		Claw->SetSelectedSensorPosition(kClawEncoderKnownHigh, /*REMOTE*/0, /*TimeOut*/0);
-		ClawSensor->SetQuadraturePosition(kClawEncoderKnownHigh,0);
+	if (!ClawSensor->GetGeneralInput(ClawSensor->LIMR)) {*/
+//		Claw->SetSelectedSensorPosition(kClawEncoderKnownHigh, /*REMOTE*/0, /*TimeOut*/0);
+/*		ClawSensor->SetQuadraturePosition(kClawEncoderKnownHigh,0);
 	}
 	if (Joystick2->GetRawButtonPressed(2)) {
-		Elevator1->Set(ControlMode::PercentOutput, -0.25);
+		Elevator1->Set(ControlMode::PercentOutput, -0.3);
 		flagElevatorDown = true;
 	}
 	if (Joystick2->GetRawButtonPressed(4)) {
@@ -299,7 +303,7 @@ void Robot::TeleopPeriodic() {
 	}
 	if (Joystick2->GetRawButtonPressed(9)) {
 		Claw->Set(ControlMode::PercentOutput, -0.25);
-	}
+	}*/
 }
 
 void Robot::DisabledInit() {
