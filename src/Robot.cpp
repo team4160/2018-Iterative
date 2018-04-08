@@ -149,7 +149,6 @@ void Robot::RobotInit() {
 
 //	ElevatorSolenoid->Set(DoubleSolenoid::Value::kOff);
 
-//	CameraServer::GetInstance()->SetSize(CameraServer::kSize320x240);
 	CameraServer::GetInstance()->StartAutomaticCapture();
 	Elevator1->SetSelectedSensorPosition(0, /*REMOTE*/0, /*TimeOut*/0);
 //	Elevator1->SetSensorPhase(true);
@@ -175,23 +174,50 @@ void Robot::RobotInit() {
  * make sure to add them to the chooser code above as well.
  */
 void Robot::AutonomousInit() {
-	mytimer->Reset();
-	mytimer->Start();
-	gyro->Reset();
+//	mytimer->Reset();
+//	mytimer->Start();
+//	gyro->Reset();
 
-//	gameData = frc::DriverStation::GetInstance().GetGameSpecificMessage();
+	gameData = "";
+	while (gameData.length() < 3) {
+		gameData = frc::DriverStation::GetInstance().GetGameSpecificMessage();
+	}
+
+	std::cout << gameData << std::endl;
 
 //	SetAllianceColor();
 
-	/*
-	 if (gameData.length > 0) {
-	 if (gameData[0] == 'L') {
-	 //Put left auto code here
-	 } else {
-	 //Put right auto code here
-	 }
-	 }
-	 */
+	if (gameData[0] == 'L') {
+		ClawLeft->Set(0.1);
+		ClawRight->Set(0.1);
+		Claw->Set(.35);
+		Wait(.2);
+		Claw->Set(0);
+
+		Wait(.2);
+
+		Elevator1->Set(-.5);
+		Wait(2.2);
+		Elevator1->Set(0);
+
+		DBLeft->Set(-0.5);
+		DBRight->Set(-0.5);
+		Wait(3.2);
+		DBLeft->Set(0);
+		DBRight->Set(0);
+
+		ClawLeft->Set(-.5);
+		ClawRight->Set(-.5);
+		Wait(1);
+		ClawLeft->Set(0);
+		ClawRight->Set(0);
+	} else {
+		DBLeft->Set(-0.5); //backwards
+		DBRight->Set(-0.5);
+		Wait(2.6);
+		DBLeft->Set(0);
+		DBRight->Set(0);
+	}
 
 //TODO figure out how to turn 90 degree in auto with time(timeout) and (gyro or encoder)
 //	Claw->Set(ControlMode::PercentOutput, 0.05);	//move up by 5%
@@ -205,13 +231,14 @@ void Robot::AutonomousPeriodic() {
 //	if (!isClawHomed) {
 //		homeClaw();
 //	}
-	if ( (mytimer->Get() < 3)) {
-		DBLeft->Set(0.6);
-		DBRight->Set(0.6);
-	} else {
-		DBLeft->Set(0);
-		DBRight->Set(0);
-	}
+
+//	if ( (mytimer->Get() < 3)) {
+//		DBLeft->Set(0.6);
+//		DBRight->Set(0.6);
+//	} else {
+//		DBLeft->Set(0);
+//		DBRight->Set(0);
+//	}
 }
 
 void Robot::TeleopInit() {
@@ -316,11 +343,13 @@ void Robot::TeleopPeriodic() {
 //	Claw->Set(ControlMode::PercentOutput, Joystick2->GetRawAxis(Attack::Down) * -1);
 //	if(Joystick2->GetRawButton(1))Elevator1->Set(ControlMode::PercentOutput, Joystick2->GetRawAxis(Attack::ReverseThrottle) * -1);
 //	else Elevator1->Set(ControlMode::PercentOutput, 0);
-	if(Joystick2->GetRawButton(PS4::R3)) Elevator1->Set(ControlMode::PercentOutput, Joystick2->GetRawAxis(PS4::PSLeftStickDown));
-	else Elevator1->Set(ControlMode::PercentOutput, Joystick2->GetRawAxis(PS4::PSLeftStickDown) / 2);
-	ClawSpeed= Joystick2->GetRawAxis(PS4::PSRightStickDown);
+	if (Joystick2->GetRawButton(PS4::R3))
+		Elevator1->Set(ControlMode::PercentOutput, Joystick2->GetRawAxis(PS4::PSLeftStickDown));
+	else
+		Elevator1->Set(ControlMode::PercentOutput, Joystick2->GetRawAxis(PS4::PSLeftStickDown) / 1.5);
+	ClawSpeed = Joystick2->GetRawAxis(PS4::PSRightStickDown);
 //	if((ClawSpeed < -.04)|(ClawSpeed > 0.04)){
-		Claw->Set(ControlMode::PercentOutput, ClawSpeed/2);
+	Claw->Set(ControlMode::PercentOutput, ClawSpeed / 2);
 //		ClawHold=Claw->GetSelectedSensorPosition(0);
 //	}else{
 //		Claw->Set(ControlMode::Position, ClawHold);
