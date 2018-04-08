@@ -56,9 +56,22 @@ enum Attack {
 	ReverseThrottle = 2 //
 };
 
+//enum kPDP {practice
+//	DBLeft = 13, //
+//	DBLeft2 = 12, //
+//	DBRight = 3, //
+//	DBRight2 = 2, //
+//	Claw = 14, //
+//	ClawLeft = 11, //
+//	ClawRight = 4, //
+//	Elevator1 = 15, //
+//	Elevator2 = 0, //
+//	Elevator3 = 1, //
+//};
+
 enum kPDP {
 	DBLeft = 13, //
-	DBLeft2 = 12, //
+	DBLeft2 = 0, //
 	DBRight = 3, //
 	DBRight2 = 2, //
 	Claw = 14, //
