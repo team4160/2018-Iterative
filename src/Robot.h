@@ -11,6 +11,8 @@
 #include "ctre/Phoenix.h"
 #include <iostream>
 #include <string>
+#include <cmath>
+#include <map>
 
 class Robot: public frc::IterativeRobot {
 public:
@@ -41,8 +43,8 @@ public:
 	static constexpr int elevatorMaxCurrent = 10;
 	static constexpr int elevatorMaxTime = 100;
 
-	static constexpr int clawForwardLimit = kEncoderUnit * 5; //eg. 5 rotations TODO test the top soft limit
-	static constexpr int clawReverseLimit = kEncoderUnit * 0; //TODO test bottom soft limit
+	static constexpr int clawForwardLimit = -150; //eg. 5 rotations TODO test the top soft limit
+	static constexpr int clawReverseLimit = -850; //TODO test bottom soft limit
 
 	//Creating the TalonSRXs and sensors
 	Joystick *Joystick1, *Joystick2;
@@ -73,8 +75,14 @@ public:
 	void TeleopPeriodic() override;
 	void TestInit() override;
 	void TestPeriodic() override;
+	int Testing();
 
 private:
+	frc::SendableChooser<std::string> m_chooser;
+	const std::string kAutoNameLeft = "Left";
+	const std::string kAutoNameRight = "Right";
+	const std::string kAutoNameCenter = "Center";
+	std::string m_autoSelected;
 	std::string gameData;
 
 	unsigned int driveState;
@@ -87,6 +95,7 @@ private:
 	double clawRightSpeed;
 	double ClawSpeed;
 	double ClawHold;
+	double ElevatorSpeed;
 
 	bool isClawHomed = false;
 	bool isElevatorHomed = false;
